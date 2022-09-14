@@ -912,6 +912,8 @@ ksql> CREATE SOURCE CONNECTOR `postgres-jdbc-source` WITH (
 ksql> 
 ```
 
+# Connectors - https://www.confluent.io/hub/
+
 <img width="1424" alt="Screenshot 2022-09-14 at 10 38 19 PM" src="https://user-images.githubusercontent.com/54174687/190218601-dba67153-0950-4a73-805a-939bf85c6e26.png">
 
 ```
@@ -935,6 +937,37 @@ rowtime: 2022/09/14 17:02:35.164 Z, key: Bob, value: {"username": "Bob", "ref": 
 rowtime: 2022/09/14 17:02:35.164 Z, key: Charlie, value: {"username": "Charlie", "ref": 3}, partition: 0
 rowtime: 2022/09/14 17:05:45.179 Z, key: Derek, value: {"username": "Derek", "ref": 4}, partition: 0
 ```
+----------
+
+# CSV Delimitted Data
+
+```sh
+kafka-topics --bootstrap-server localhost:9092 --create --partitions 1 --replication-factor 1 --topic COMPLAINTS_CSV
+```
+
+```
+ksql> CREATE STREAM complaints_csv (customer_name VARCHAR, complaint_type VARCHAR, trip_cost DOUBLE, new_customer BOOLEAN) \
+>  WITH (VALUE_FORMAT = 'DELIMITED', KAFKA_TOPIC = 'COMPLAINTS_CSV');
+
+ Message        
+----------------
+ Stream created 
+----------------
+
+ksql> select * from complaints_csv emit changes;
++------------------------------+------------------------------+------------------------------+------------------------------+
+|CUSTOMER_NAME                 |COMPLAINT_TYPE                |TRIP_COST                     |NEW_CUSTOMER                  |
++------------------------------+------------------------------+------------------------------+------------------------------+
+|Alice                         | Late arrival                 |43.1                          |false                         |
+```
+
+```sh
+kafka-console-producer --bootstrap-server localhost:9092 --topic COMPLAINTS_CSV
+>Alice, Late arrival, 43.10, true       
+```
+
+
+
 
 
 
