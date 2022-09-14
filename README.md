@@ -641,8 +641,8 @@ ksql> select firstname,lastname,countrycode,rating from userprofile emit changes
 ^CQuery terminated
 
 ksql> select up.firstname, up.lastname, up.countrycode, ct.countryname 
->from USERPROFILE up 
->left join COUNTRYTABLE ct on ct.countrycode=up.countrycode emit changes;
+from USERPROFILE up 
+left join COUNTRYTABLE ct on ct.countrycode=up.countrycode emit changes;
 +----------------------------+----------------------------+----------------------------+----------------------------+
 |FIRSTNAME                   |LASTNAME                    |UP_COUNTRYCODE              |COUNTRYNAME                 |
 +----------------------------+----------------------------+----------------------------+----------------------------+
@@ -657,13 +657,13 @@ ksql> select up.firstname, up.lastname, up.countrycode, ct.countryname
 ^CQuery terminated
 
 ksql> create stream up_joined as 
->select up.firstname 
->+ ' ' + ucase(up.lastname) 
->+ ' from ' + ct.countryname
->+ ' has a rating of ' + cast(rating as varchar) + ' stars.' as description 
->, up.countrycode
->from USERPROFILE up 
->left join COUNTRYTABLE ct on ct.countrycode=up.countrycode;
+select up.firstname 
++ ' ' + ucase(up.lastname) 
++ ' from ' + ct.countryname
++ ' has a rating of ' + cast(rating as varchar) + ' stars.' as description 
+, up.countrycode
+from USERPROFILE up 
+left join COUNTRYTABLE ct on ct.countrycode=up.countrycode;
 
  Message                                 
 -----------------------------------------
@@ -753,12 +753,17 @@ ksql>
 
 ```
 ksql> CREATE STREAM driverLocations (driverId VARCHAR KEY, countrycode VARCHAR, city VARCHAR, driverName VARCHAR)
->  WITH (kafka_topic='driverlocations', value_format='json', partitions=1);
+WITH (kafka_topic='driverlocations', value_format='json', partitions=1);
 
  Message        
 ----------------
  Stream created 
 ----------------
+
+ksql> INSERT INTO driverLocations (driverId, countrycode, city, driverName) VALUES ('1', 'AU', 'Sydney', 'Alice');
+ksql> INSERT INTO driverLocations (driverId, countrycode, city, driverName) VALUES ('2', 'AU', 'Melbourne', 'Bob');
+ksql> INSERT INTO driverLocations (driverId, countrycode, city, driverName) VALUES ('3', 'GB', 'London', 'Carole');
+ksql> INSERT INTO driverLocations (driverId, countrycode, city, driverName) VALUES ('4', 'US', 'New York', 'Derek');
 ```
 
 ```
@@ -775,9 +780,28 @@ ksql> select countrycode, numdrivers from countryDrivers where countrycode='AU';
 +-----------------------------------------------------------+-----------------------------------------------------------+
 |COUNTRYCODE                                                |NUMDRIVERS                                                 |
 +-----------------------------------------------------------+-----------------------------------------------------------+
-|AU                                                         |3                                                          |
+|AU                                                         |2                                                          |
 Query terminated
 ksql> 
 ```
+
+```
+ksql> select * from countryDrivers emit changes;
++--------------------------------------------------------------+--------------------------------------------------------------+
+|COUNTRYCODE                                                   |NUMDRIVERS                                                    |
++--------------------------------------------------------------+--------------------------------------------------------------+
+|AU                                                            |2                                                             |
+|GB                                                            |1                                                             |
+|US                                                            |1                                                             |
+
+```
+
+```
+INSERT INTO driverLocations (driverId, countrycode, city, driverName) VALUES ('5', 'AU', 'Sydney', 'Emma');
+
+select countrycode, numdrivers from countryDrivers where countrycode='AU';
+```
+------------
+
 
 
