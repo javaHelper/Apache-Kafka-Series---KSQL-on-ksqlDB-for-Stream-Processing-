@@ -82,11 +82,22 @@ kafka-console-producer --bootstrap-server localhost:9092 --topic USERS
 
 ```
 
-
 ```sh
 ksql> print 'USERS';
 Key format: ¯\_(ツ)_/¯ - no data processed
 Value format: KAFKA_STRING
+rowtime: 2022/09/14 05:29:00.340 Z, key: <null>, value: Bob,GB, partition: 0
+rowtime: 2022/09/14 05:29:45.897 Z, key: <null>, value: Carole,AU, partition: 0
+rowtime: 2022/09/14 05:29:53.947 Z, key: <null>, value: Dan,PO, partition: 0
+```
+
+- Show all data already there in that topic
+
+```sh
+ksql> print 'USERS' from beginning;
+Key format: ¯\_(ツ)_/¯ - no data processed
+Value format: KAFKA_STRING
+rowtime: 2022/09/14 05:25:23.746 Z, key: <null>, value: Alice,US, partition: 0
 rowtime: 2022/09/14 05:29:00.340 Z, key: <null>, value: Bob,GB, partition: 0
 rowtime: 2022/09/14 05:29:45.897 Z, key: <null>, value: Carole,AU, partition: 0
 rowtime: 2022/09/14 05:29:53.947 Z, key: <null>, value: Dan,PO, partition: 0
