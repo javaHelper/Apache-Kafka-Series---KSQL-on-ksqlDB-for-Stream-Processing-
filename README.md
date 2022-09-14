@@ -468,5 +468,74 @@ ksql> drop stream user_profile_pretty;
 
 # ksqlDB Tables
 
+```
+kafka-topics --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic COUNTRY-CSV
+Created topic COUNTRY-CSV.
+```
+
+```
+ksql-course-master % kafka-console-producer --bootstrap-server localhost:9092 --topic COUNTRY-CSV --property "parse.key=true"  --property "key.separator=:"
+>AU:Australia
+>IN:India
+>GB:UK
+>US:United States
+>
+```
+
+```
+ksql> CREATE TABLE COUNTRYTABLE  (countrycode VARCHAR PRIMARY KEY, countryname VARCHAR) WITH (KAFKA_TOPIC='COUNTRY-CSV', VALUE_FORMAT='DELIMITED');
+
+ Message       
+---------------
+ Table created 
+---------------
+ksql> show tables;
+
+ Table Name   | Kafka Topic | Key Format | Value Format | Windowed 
+-------------------------------------------------------------------
+ COUNTRYTABLE | COUNTRY-CSV | KAFKA      | DELIMITED    | false    
+-------------------------------------------------------------------
+ksql> describe COUNTRYTABLE;
+
+Name                 : COUNTRYTABLE
+ Field       | Type                           
+----------------------------------------------
+ COUNTRYCODE | VARCHAR(STRING)  (primary key) 
+ COUNTRYNAME | VARCHAR(STRING)                
+----------------------------------------------
+For runtime statistics and query details run: DESCRIBE <Stream,Table> EXTENDED;
+
+
+ksql> select countrycode, countryname from countrytable emit changes;
++-----------------------------------------------------------+-----------------------------------------------------------+
+|COUNTRYCODE                                                |COUNTRYNAME                                                |
++-----------------------------------------------------------+-----------------------------------------------------------+
+|AU                                                         |Australia                                                  |
+|IN                                                         |India                                                      |
+|GB                                                         |UK                                                         |
+|US                                                         |United States                                              |
+^CQuery terminated
+
+
+ksql> select countrycode, countryname from countrytable where countrycode='GB' emit changes limit 1;
++-----------------------------------------------------------+-----------------------------------------------------------+
+|COUNTRYCODE                                                |COUNTRYNAME                                                |
++-----------------------------------------------------------+-----------------------------------------------------------+
+|GB                                                         |UK                                                         |
+Limit Reached
+Query terminated
+
+
+ksql> select countrycode, countryname from countrytable where countrycode='FR' emit changes;
++-----------------------------------------------------------+-----------------------------------------------------------+
+|COUNTRYCODE                                                |COUNTRYNAME                                                |
++-----------------------------------------------------------+-----------------------------------------------------------+
+
+
+```
+
+
+
+
 
 
