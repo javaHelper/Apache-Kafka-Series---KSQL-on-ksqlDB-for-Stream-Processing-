@@ -366,6 +366,7 @@ ksql> select rowtime, firstname from userprofile emit changes;
 |1663149698196                                              |Heidi                                                      |
 
 ```
+Review Scalar functions at https://docs.confluent.io/current/ksql/docs/developer-guide/syntax-reference.html#scalar-functions
 
 ```
 ksql> select  TIMESTAMPTOSTRING(rowtime, 'dd/MMM HH:mm') as createtime, firstname + ' ' + ucase(lastname)  as full_name
@@ -391,4 +392,81 @@ ksql> select  TIMESTAMPTOSTRING(rowtime, 'dd/MMM HH:mm') as createtime, firstnam
 ```
 
 ----------
+
+# Streams from streams and functions
+
+```
+select firstname + ' ' 
++ ucase( lastname) 
++ ' from ' + countrycode 
++ ' has a rating of ' + cast(rating as varchar) + ' stars. ' 
++ case when rating < 2.5 then 'Poor'
+       when rating between 2.5 and 4.2 then 'Good'
+       else 'Excellent' 
+   end as description
+from userprofile emit changes;
+
+
++------------------------------------------------------------------------------------------------------------------------+
+|DESCRIPTION                                                                                                             |
++------------------------------------------------------------------------------------------------------------------------+
+|Alison SMITH from GB has a rating of 4.7 stars. Excellent                                                               |
+|Bob SMITH from US has a rating of 4.2 stars. Good                                                                       |
+|Grace FAWCETT from GB has a rating of 3.4 stars. Good                                                                   |
+|Ivan JONES from IN has a rating of 3.4 stars. Good                                                                      |
+|Bob EDISON from GB has a rating of 3.4 stars. Good                                                                      |
+|Ivan FAWCETT from IN has a rating of 4.4 stars. Excellent                                                               |
+|Eve EDISON from GB has a rating of 2.2 stars. Poor                                                                      |
+|Grace JONES from AU has a rating of 3.7 stars. Good                                                                     |
+|Eve JONES from IN has a rating of 2.2 stars. Poor                                                                       |
+|Heidi DOTTY from US has a rating of 3.9 stars. Good                                                                     |
+|Dan JONES from GB has a rating of 3.4 stars. Good                                                                       |
+|Dan JONES from US has a rating of 3.7 stars. Good                                                                       |
+|Bob COEN from AU has a rating of 4.9 stars. Excellent                                                                   |
+|Grace DOTTY from IN has a rating of 4.4 stars. Excellent                                                                |
+|Ivan JONES from IN has a rating of 2.2 stars. Poor                                                                      |
+|Eve EDISON from GB has a rating of 3.7 stars. Good                                                                      |
+|Heidi JONES from US has a rating of 2.2 stars. Poor                                                                     |
+|Alice FAWCETT from IN has a rating of 3.7 stars. Good                                                                   |
+|Ivan EDISON from AU has a rating of 3.7 stars. Good                                                                     |
+|Grace COEN from IN has a rating of 3.7 stars. Good                                                                      |
+
+```
+
+```
+ksql> run script '/Users/prats/Downloads/ksql-course-master/user_profile_pretty.ksql'
+
+ Message                                          
+--------------------------------------------------
+ Created query with ID CSAS_USER_PROFILE_PRETTY_7 
+--------------------------------------------------
+ksql> 
+
+ksql> select description from user_profile_pretty emit changes;
++------------------------------------------------------------------------------------------------------------------------+
+|DESCRIPTION                                                                                                             |
++------------------------------------------------------------------------------------------------------------------------+
+|Alison SMITH from GB has a rating of 4.7 stars. Excellent                                                               |
+|Bob SMITH from US has a rating of 4.2 stars. Good                                                                       |
+|Grace FAWCETT from GB has a rating of 3.4 stars. Good                                                                   |
+|Ivan JONES from IN has a rating of 3.4 stars. Good                                                                      |
+|Bob EDISON from GB has a rating of 3.4 stars. Good                                                                      |
+|Ivan FAWCETT from IN has a rating of 4.4 stars. Excellent                                                               |
+|Eve EDISON from GB has a rating of 2.2 stars. Poor                                                                      |
+|Grace JONES from AU has a rating of 3.7 stars. Good                                                                     |
+|Eve JONES from IN has a rating of 2.2 stars. Poor                                                                       |
+
+
+ksql> drop stream user_profile_pretty;
+
+ Message                                                                
+------------------------------------------------------------------------
+ Source `USER_PROFILE_PRETTY` (topic: USER_PROFILE_PRETTY) was dropped. 
+------------------------------------------------------------------------
+```
+-------
+
+# ksqlDB Tables
+
+
 
