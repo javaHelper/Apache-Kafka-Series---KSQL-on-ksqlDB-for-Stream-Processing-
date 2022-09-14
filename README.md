@@ -66,8 +66,8 @@ kafka-console-producer --bootstrap-server localhost:9092 --topic USERS
 Then on ksql screen. Note - By default ksql only shows newly arriving data.
 
 ```
-ksql> print 'USERS'
->
+ksql> print 'USERS';
+
 ```
 
 Yoi keep sending data and data should arrive here.
@@ -258,8 +258,7 @@ Created topic USERPROFILE.
 ```
 
 ```
-ksql> CREATE STREAM userprofile (userid INT, firstname VARCHAR, lastname VARCHAR, countrycode VARCHAR, rating DOUBLE) \
->  WITH (VALUE_FORMAT = 'JSON', KAFKA_TOPIC = 'USERPROFILE');
+ksql> CREATE STREAM userprofile (userid INT, firstname VARCHAR, lastname VARCHAR, countrycode VARCHAR, rating DOUBLE) WITH (VALUE_FORMAT = 'JSON', KAFKA_TOPIC = 'USERPROFILE');
 
  Message        
 ----------------
@@ -285,6 +284,10 @@ Name                 : USERPROFILE
 -------------------------------
 For runtime statistics and query details run: DESCRIBE <Stream,Table> EXTENDED;
 ksql> 
+
+
+
+
 ```
 
 ```
