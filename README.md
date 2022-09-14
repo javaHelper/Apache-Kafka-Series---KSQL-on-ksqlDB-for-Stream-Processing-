@@ -333,7 +333,62 @@ print 'USERPROFILE' interval 5;
 
 -------
 
+# Manipulate a Stream
+
+```
+ksql> describe userprofile;
+
+Name                 : USERPROFILE
+ Field       | Type
+-----------------------------------------
+ USERID      | INTEGER
+ FIRSTNAME   | VARCHAR(STRING)
+ LASTNAME    | VARCHAR(STRING)
+ COUNTRYCODE | VARCHAR(STRING)
+ RATING      | DOUBLE
 
 
+select rowtime, firstname from userprofile emit changes;
 
+ksql> select rowtime, firstname from userprofile emit changes;
++-----------------------------------------------------------+-----------------------------------------------------------+
+|ROWTIME                                                    |FIRSTNAME                                                  |
++-----------------------------------------------------------+-----------------------------------------------------------+
+|1663137765144                                              |Alison                                                     |
+|1663137782250                                              |Bob                                                        |
+|1663149692187                                              |Grace                                                      |
+|1663149692206                                              |Ivan                                                       |
+|1663149693197                                              |Bob                                                        |
+|1663149694198                                              |Ivan                                                       |
+|1663149695189                                              |Eve                                                        |
+|1663149696212                                              |Grace                                                      |
+|1663149697197                                              |Eve                                                        |
+|1663149698196                                              |Heidi                                                      |
+
+```
+
+```
+ksql> select  TIMESTAMPTOSTRING(rowtime, 'dd/MMM HH:mm') as createtime, firstname + ' ' + ucase(lastname)  as full_name
+>from userprofile emit changes;
++-----------------------------------------------------------+-----------------------------------------------------------+
+|CREATETIME                                                 |FULL_NAME                                                  |
++-----------------------------------------------------------+-----------------------------------------------------------+
+|14/Sep 12:12                                               |Alison SMITH                                               |
+|14/Sep 12:13                                               |Bob SMITH                                                  |
+|14/Sep 15:31                                               |Grace FAWCETT                                              |
+|14/Sep 15:31                                               |Ivan JONES                                                 |
+|14/Sep 15:31                                               |Bob EDISON                                                 |
+|14/Sep 15:31                                               |Ivan FAWCETT                                               |
+|14/Sep 15:31                                               |Eve EDISON                                                 |
+|14/Sep 15:31                                               |Grace JONES                                                |
+|14/Sep 15:31                                               |Eve JONES                                                  |
+|14/Sep 15:31                                               |Heidi DOTTY                                                |
+|14/Sep 15:31                                               |Dan JONES                                                  |
+|14/Sep 15:31                                               |Dan JONES                                                  |
+|14/Sep 15:31                                               |Bob COEN                                                   |
+|14/Sep 15:31                                               |Grace DOTTY                                                |
+|14/Sep 15:31                                               |Ivan JONES                                                 |
+```
+
+----------
 
