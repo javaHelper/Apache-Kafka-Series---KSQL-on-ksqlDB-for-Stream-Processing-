@@ -284,10 +284,30 @@ Name                 : USERPROFILE
 -------------------------------
 For runtime statistics and query details run: DESCRIBE <Stream,Table> EXTENDED;
 ksql> 
+ksql> describe USERPROFILE extended;
+
+Name                 : USERPROFILE
+Type                 : STREAM
+Timestamp field      : Not set - using <ROWTIME>
+Key format           : KAFKA
+Value format         : JSON
+Kafka topic          : USERPROFILE (partitions: 1, replication: 1)
+Statement            : CREATE STREAM USERPROFILE (USERID INTEGER, FIRSTNAME STRING, LASTNAME STRING, COUNTRYCODE STRING, RATING DOUBLE) WITH (KAFKA_TOPIC='USERPROFILE', KEY_FORMAT='KAFKA', VALUE_FORMAT='JSON');
+
+ Field       | Type            
+-------------------------------
+ USERID      | INTEGER         
+ FIRSTNAME   | VARCHAR(STRING) 
+ LASTNAME    | VARCHAR(STRING) 
+ COUNTRYCODE | VARCHAR(STRING) 
+ RATING      | DOUBLE          
+-------------------------------
+
+Local runtime statistics
+------------------------
 
 
-
-
+(Statistics of the local KSQL server interaction with the Kafka topic USERPROFILE)
 ```
 
 ```
