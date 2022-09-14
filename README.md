@@ -717,5 +717,35 @@ ksql>
 
 --------
 
+# Pull Queries
+
+```
+ksql> CREATE STREAM driverLocations (driverId VARCHAR KEY, countrycode VARCHAR, city VARCHAR, driverName VARCHAR)
+>  WITH (kafka_topic='driverlocations', value_format='json', partitions=1);
+
+ Message        
+----------------
+ Stream created 
+----------------
+```
+
+```
+ksql> create table countryDrivers as select countrycode, count(*) as numDrivers from driverLocations group by countrycode;
+
+ Message                                      
+----------------------------------------------
+ Created query with ID CTAS_COUNTRYDRIVERS_17 
+----------------------------------------------
+```
+
+```
+ksql> select countrycode, numdrivers from countryDrivers where countrycode='AU';
++-----------------------------------------------------------+-----------------------------------------------------------+
+|COUNTRYCODE                                                |NUMDRIVERS                                                 |
++-----------------------------------------------------------+-----------------------------------------------------------+
+|AU                                                         |3                                                          |
+Query terminated
+ksql> 
+```
 
 
