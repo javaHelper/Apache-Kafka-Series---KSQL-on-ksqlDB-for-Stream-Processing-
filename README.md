@@ -102,3 +102,23 @@ rowtime: 2022/09/14 05:29:00.340 Z, key: <null>, value: Bob,GB, partition: 0
 rowtime: 2022/09/14 05:29:45.897 Z, key: <null>, value: Carole,AU, partition: 0
 rowtime: 2022/09/14 05:29:53.947 Z, key: <null>, value: Dan,PO, partition: 0
 ```
+
+- What if I want to see only two data from beginning;
+
+```sh
+ksql> print 'USERS' from beginning limit 2;
+Key format: ¯\_(ツ)_/¯ - no data processed
+Value format: KAFKA_STRING
+rowtime: 2022/09/14 05:25:23.746 Z, key: <null>, value: Alice,US, partition: 0
+rowtime: 2022/09/14 05:27:27.582 Z, key: <null>, value: Bob,GB, partition: 0
+Topic printing ceased
+```
+
+```
+ksql> print 'USERS' from beginning interval 2 limit 2;
+Key format: ¯\_(ツ)_/¯ - no data processed
+Value format: KAFKA_STRING
+rowtime: 2022/09/14 05:25:23.746 Z, key: <null>, value: Alice,US, partition: 0
+rowtime: 2022/09/14 05:28:20.351 Z, key: <null>, value: Carole,AU, partition: 0
+Topic printing ceased
+```
