@@ -240,6 +240,11 @@ ksql> list topics;
  default_ksql_processing_log | 1          | 1                  
 ---------------------------------------------------------------
 ksql>
+ksql> show topics;
+
+ Kafka Topic                 | Partitions | Partition Replicas 
+---------------------------------------------------------------
+ default_ksql_processing_log | 1          | 1                  
+---------------------------------------------------------------
+ksql>
 ```
-
-
