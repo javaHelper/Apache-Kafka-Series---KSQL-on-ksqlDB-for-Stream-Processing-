@@ -303,5 +303,11 @@ ksql> select firstname, lastname, countrycode, rating from USERPROFILE emit chan
 
 
 ```
+-------
+
+# KSQL Datagen Generating Stream
+
+
+
 
 
