@@ -463,7 +463,7 @@ ksql> run script '/Users/prats/Downloads/ksql-course-master/user_profile_pretty.
 --------------------------------------------------
  Created query with ID CSAS_USER_PROFILE_PRETTY_7 
 --------------------------------------------------
-ksql> 
+ksql> describe USER_PROFILE_PRETTY extended;
 
 ksql> select description from user_profile_pretty emit changes;
 +------------------------------------------------------------------------------------------------------------------------+
@@ -480,12 +480,21 @@ ksql> select description from user_profile_pretty emit changes;
 |Eve JONES from IN has a rating of 2.2 stars. Poor                                                                       |
 
 
+ksql> terminate CSAS_USER_PROFILE_PRETTY_7;
+
+ Message           
+-------------------
+ Query terminated. 
+-------------------
+
 ksql> drop stream user_profile_pretty;
 
  Message                                                                
 ------------------------------------------------------------------------
  Source `USER_PROFILE_PRETTY` (topic: USER_PROFILE_PRETTY) was dropped. 
 ------------------------------------------------------------------------
+ksql>
+
 ```
 -------
 
