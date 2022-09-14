@@ -911,6 +911,9 @@ ksql> CREATE SOURCE CONNECTOR `postgres-jdbc-source` WITH (
 ----------------------------------------
 ksql> 
 
+<img width="1424" alt="Screenshot 2022-09-14 at 10 38 19 PM" src="https://user-images.githubusercontent.com/54174687/190218601-dba67153-0950-4a73-805a-939bf85c6e26.png">
+
+
 ksql> print 'db-carusers' from beginning;
 Key format: KAFKA_STRING
 Value format: AVRO or KAFKA_STRING
@@ -919,5 +922,19 @@ rowtime: 2022/09/14 17:02:35.164 Z, key: Bob, value: {"username": "Bob", "ref": 
 rowtime: 2022/09/14 17:02:35.1
 
 ```
+
+Now try to insert record in PostgresDB named as Derek and getting below 
+
+```
+ksql> print 'db-carusers' from beginning;
+Key format: KAFKA_STRING
+Value format: AVRO or KAFKA_STRING
+rowtime: 2022/09/14 17:02:35.159 Z, key: Alice, value: {"username": "Alice", "ref": 1}, partition: 0
+rowtime: 2022/09/14 17:02:35.164 Z, key: Bob, value: {"username": "Bob", "ref": 2}, partition: 0
+rowtime: 2022/09/14 17:02:35.164 Z, key: Charlie, value: {"username": "Charlie", "ref": 3}, partition: 0
+rowtime: 2022/09/14 17:05:45.179 Z, key: Derek, value: {"username": "Derek", "ref": 4}, partition: 0
+```
+
+
 
 
