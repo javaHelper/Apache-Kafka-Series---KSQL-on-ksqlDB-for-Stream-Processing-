@@ -122,3 +122,29 @@ rowtime: 2022/09/14 05:25:23.746 Z, key: <null>, value: Alice,US, partition: 0
 rowtime: 2022/09/14 05:28:20.351 Z, key: <null>, value: Carole,AU, partition: 0
 Topic printing ceased
 ```
+---------
+
+# Steps to create Stream
+
+```
+ksql> create stream users_stream (name VARCHAR, countrycode VARCHAR) WITH (KAFKA_TOPIC='USERS', VALUE_FORMAT='DELIMITED');
+ Message        
+----------------
+ Stream created 
+----------------
+ksql>
+```
+
+- List all streams available 
+
+```
+ksql> list streams;
+
+ Stream Name         | Kafka Topic                 | Key Format | Value Format | Windowed 
+------------------------------------------------------------------------------------------
+ KSQL_PROCESSING_LOG | default_ksql_processing_log | KAFKA      | JSON         | false    
+ USERS_STREAM        | USERS                       | KAFKA      | DELIMITED    | false    
+------------------------------------------------------------------------------------------
+ksql> 
+```
+
