@@ -123,7 +123,7 @@ rowtime: 2022/09/14 05:28:20.351 Z, key: <null>, value: Carole,AU, partition: 0
 Topic printing ceased
 ```
 ---------
-
+# Our First ksql streams
 # Steps to create Stream
 
 ```
@@ -248,3 +248,42 @@ ksql> show topics;
 ---------------------------------------------------------------
 ksql>
 ```
+-----
+
+# Create Stream with JSON
+
+```
+kafka-topics --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic USERPROFILE
+Created topic USERPROFILE.
+```
+
+```
+ksql> CREATE STREAM userprofile (userid INT, firstname VARCHAR, lastname VARCHAR, countrycode VARCHAR, rating DOUBLE) \
+>  WITH (VALUE_FORMAT = 'JSON', KAFKA_TOPIC = 'USERPROFILE');
+
+ Message        
+----------------
+ Stream created 
+----------------
+ksql> list streams;
+
+ Stream Name         | Kafka Topic                 | Key Format | Value Format | Windowed 
+------------------------------------------------------------------------------------------
+ KSQL_PROCESSING_LOG | default_ksql_processing_log | KAFKA      | JSON         | false    
+ USERPROFILE         | USERPROFILE                 | KAFKA      | JSON         | false    
+------------------------------------------------------------------------------------------
+ksql> describe USERPROFILE;
+
+Name                 : USERPROFILE
+ Field       | Type            
+-------------------------------
+ USERID      | INTEGER         
+ FIRSTNAME   | VARCHAR(STRING) 
+ LASTNAME    | VARCHAR(STRING) 
+ COUNTRYCODE | VARCHAR(STRING) 
+ RATING      | DOUBLE          
+-------------------------------
+For runtime statistics and query details run: DESCRIBE <Stream,Table> EXTENDED;
+ksql> 
+```
+
