@@ -575,9 +575,147 @@ ksql>
 ```
 
 ------
+
+# ksqlDB and KSQL Intermediate
+
+# KSQL Joins
+
+```sh
+ksql-datagen schema=./datagen/userprofile.avro format=json topic=USERPROFILE key=userid msgRate=1 iterations=1000
 ```
 
+```
+ksql> select countrycode, countryname from countrytable emit changes;
++-----------------------------------------------------------+-----------------------------------------------------------+
+|COUNTRYCODE                                                |COUNTRYNAME                                                |
++-----------------------------------------------------------+-----------------------------------------------------------+
+|AU                                                         |Australia                                                  |
+|IN                                                         |India                                                      |
+|US                                                         |United States                                              |
+|GB                                                         |United Kingdom                                             |
+|FR                                                         |France                                                     |
+^CQuery terminated
 
+
+ksql> select firstname,lastname,countrycode,rating from userprofile emit changes;
++----------------------------+----------------------------+----------------------------+----------------------------+
+|FIRSTNAME                   |LASTNAME                    |COUNTRYCODE                 |RATING                      |
++----------------------------+----------------------------+----------------------------+----------------------------+
+|Bob                         |Jones                       |US                          |3.4                         |
+|Carol                       |Jones                       |GB                          |4.4                         |
+|Eve                         |Fawcett                     |US                          |3.7                         |
+|Carol                       |Smith                       |US                          |4.4                         |
+|Carol                       |Fawcett                     |GB                          |4.9                         |
+^CQuery terminated
+
+ksql> select up.firstname, up.lastname, up.countrycode, ct.countryname 
+>from USERPROFILE up 
+>left join COUNTRYTABLE ct on ct.countrycode=up.countrycode emit changes;
++----------------------------+----------------------------+----------------------------+----------------------------+
+|FIRSTNAME                   |LASTNAME                    |UP_COUNTRYCODE              |COUNTRYNAME                 |
++----------------------------+----------------------------+----------------------------+----------------------------+
+|Alice                       |Edison                      |US                          |United States               |
+|Dan                         |Edison                      |AU                          |Australia                   |
+|Ivan                        |Jones                       |AU                          |Australia                   |
+|Heidi                       |Fawcett                     |US                          |United States               |
+|Frank                       |Dotty                       |US                          |United States               |
+|Alice                       |Fawcett                     |AU                          |Australia                   |
+|Eve                         |Jones                       |US                          |United States               |
+|Alice                       |Smith                       |AU                          |Australia                   |
+^CQuery terminated
+
+ksql> create stream up_joined as 
+>select up.firstname 
+>+ ' ' + ucase(up.lastname) 
+>+ ' from ' + ct.countryname
+>+ ' has a rating of ' + cast(rating as varchar) + ' stars.' as description 
+>, up.countrycode
+>from USERPROFILE up 
+>left join COUNTRYTABLE ct on ct.countrycode=up.countrycode;
+
+ Message                                 
+-----------------------------------------
+ Created query with ID CSAS_UP_JOINED_13 
+-----------------------------------------
+ksql> 
+
+ksql> describe up_joined;
+
+Name                 : UP_JOINED
+ Field          | Type                   
+-----------------------------------------
+ UP_COUNTRYCODE | VARCHAR(STRING)  (key) 
+ DESCRIPTION    | VARCHAR(STRING)        
+-----------------------------------------
+For runtime statistics and query details run: DESCRIBE <Stream,Table> EXTENDED;
+ksql> 
+^C
+
+ksql> DESCRIBE up_joined EXTENDED;
+
+Name                 : UP_JOINED
+Type                 : STREAM
+Timestamp field      : Not set - using <ROWTIME>
+Key format           : KAFKA
+Value format         : JSON
+Kafka topic          : UP_JOINED (partitions: 1, replication: 1)
+Statement            : CREATE STREAM UP_JOINED WITH (KAFKA_TOPIC='UP_JOINED', PARTITIONS=1, REPLICAS=1) AS SELECT
+  (((((((UP.FIRSTNAME + ' ') + UCASE(UP.LASTNAME)) + ' from ') + CT.COUNTRYNAME) + ' has a rating of ') + CAST(UP.RATING AS STRING)) + ' stars.') DESCRIPTION,
+  UP.COUNTRYCODE UP_COUNTRYCODE
+FROM USERPROFILE UP
+LEFT OUTER JOIN COUNTRYTABLE CT ON ((CT.COUNTRYCODE = UP.COUNTRYCODE))
+EMIT CHANGES;
+
+ Field          | Type                   
+-----------------------------------------
+ UP_COUNTRYCODE | VARCHAR(STRING)  (key) 
+ DESCRIPTION    | VARCHAR(STRING)        
+-----------------------------------------
+
+Queries that write from this STREAM
+-----------------------------------
+CSAS_UP_JOINED_13 (RUNNING) : CREATE STREAM UP_JOINED WITH (KAFKA_TOPIC='UP_JOINED', PARTITIONS=1, REPLICAS=1) AS SELECT   (((((((UP.FIRSTNAME + ' ') + UCASE(UP.LASTNAME)) + ' from ') + CT.COUNTRYNAME) + ' has a rating of ') + CAST(UP.RATING AS STRING)) + ' stars.') DESCRIPTION,   UP.COUNTRYCODE UP_COUNTRYCODE FROM USERPROFILE UP LEFT OUTER JOIN COUNTRYTABLE CT ON ((CT.COUNTRYCODE = UP.COUNTRYCODE)) EMIT CHANGES;
+
+For query topology and execution plan please run: EXPLAIN <QueryId>
+
+Local runtime statistics
+------------------------
+
+
+(Statistics of the local KSQL server interaction with the Kafka topic UP_JOINED)
+
+Consumer Groups summary:
+
+Consumer Group       : _confluent-ksql-default_query_CSAS_UP_JOINED_13
+
+Kafka topic          : COUNTRY-CSV
+Max lag              : 0
+
+ Partition | Start Offset | End Offset | Offset | Lag 
+------------------------------------------------------
+ 0         | 0            | 6          | 6      | 0   
+------------------------------------------------------
+ksql> 
+
+
+ksql> select * from up_joined emit changes;
++-----------------------------------------------------------+-----------------------------------------------------------+
+|UP_COUNTRYCODE                                             |DESCRIPTION                                                |
++-----------------------------------------------------------+-----------------------------------------------------------+
+|US                                                         |Carol JONES from United States has a rating of 2.2 stars.  |
+|AU                                                         |Alice JONES from Australia has a rating of 3.4 stars.      |
+|AU                                                         |Frank COEN from Australia has a rating of 2.2 stars.       |
+|US                                                         |Dan FAWCETT from United States has a rating of 3.9 stars.  |
+|US                                                         |Frank SMITH from United States has a rating of 4.4 stars.  |
+|US                                                         |Eve FAWCETT from United States has a rating of 4.9 stars.  |
+|GB                                                         |Heidi JONES from United Kingdom has a rating of 4.9 stars. |
+|AU                                                         |Dan DOTTY from Australia has a rating of 2.2 stars.        |
+|GB                                                         |Grace JONES from United Kingdom has a rating of 3.4 stars. |
+^CQuery terminated
+ksql> 
+```
+
+--------
 
 
 
