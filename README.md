@@ -818,3 +818,97 @@ INSERT INTO carusers (username) VALUES ('Bob');
 INSERT INTO carusers (username) VALUES ('Charlie');
 ```
 
+# steps to install kafka connectors
+
+
+```
+confluent-hub install debezium/debezium-connector-postgresql:1.9.3
+
+The component can be installed in any of the following Confluent Platform installations: 
+  1. /Users/prats/confluent-7.0.1 (based on $CONFLUENT_HOME) 
+  2. /Users/prats/confluent-7.0.1 (where this tool is installed) 
+Choose one of these to continue the installation (1-2): 1
+Do you want to install this into /Users/prats/confluent-7.0.1/share/confluent-hub-components? (yN) y
+
+ 
+Component's license: 
+Apache 2.0 
+https://github.com/debezium/debezium/blob/master/LICENSE.txt 
+I agree to the software license agreement (yN) y
+
+You are about to install 'debezium-connector-postgresql' from Debezium Community, as published on Confluent Hub. 
+Do you want to continue? (yN) y
+
+Downloading component Debezium PostgreSQL CDC Connector 1.9.3, provided by Debezium Community from Confluent Hub and installing into /Users/prats/confluent-7.0.1/share/confluent-hub-components 
+Detected Worker's configs: 
+  1. Standard: /Users/prats/confluent-7.0.1/etc/kafka/connect-distributed.properties 
+  2. Standard: /Users/prats/confluent-7.0.1/etc/kafka/connect-standalone.properties 
+  3. Standard: /Users/prats/confluent-7.0.1/etc/schema-registry/connect-avro-distributed.properties 
+  4. Standard: /Users/prats/confluent-7.0.1/etc/schema-registry/connect-avro-standalone.properties 
+  5. Based on CONFLUENT_CURRENT: /var/folders/kn/4wr9__651l37hckxvnnwt4hh0000gn/T/confluent.218210/connect/connect.properties 
+  6. Used by Connect process with PID 41219: /var/folders/kn/4wr9__651l37hckxvnnwt4hh0000gn/T/confluent.218210/connect/connect.properties 
+Do you want to update all detected configs? (yN) y
+
+Adding installation directory to plugin path in the following files: 
+  /Users/prats/confluent-7.0.1/etc/kafka/connect-distributed.properties 
+  /Users/prats/confluent-7.0.1/etc/kafka/connect-standalone.properties 
+  /Users/prats/confluent-7.0.1/etc/schema-registry/connect-avro-distributed.properties 
+  /Users/prats/confluent-7.0.1/etc/schema-registry/connect-avro-standalone.properties 
+  /var/folders/kn/4wr9__651l37hckxvnnwt4hh0000gn/T/confluent.218210/connect/connect.properties 
+  /var/folders/kn/4wr9__651l37hckxvnnwt4hh0000gn/T/confluent.218210/connect/connect.properties 
+ 
+Completed 
+
+
+confluent-hub install confluentinc/kafka-connect-jdbc:10.5.2
+The component can be installed in any of the following Confluent Platform installations: 
+  1. /Users/prats/confluent-7.0.1 (based on $CONFLUENT_HOME) 
+  2. /Users/prats/confluent-7.0.1 (where this tool is installed) 
+Choose one of these to continue the installation (1-2): 1
+Do you want to install this into /Users/prats/confluent-7.0.1/share/confluent-hub-components? (yN) y
+
+ 
+Component's license: 
+Confluent Community License 
+https://www.confluent.io/confluent-community-license 
+I agree to the software license agreement (yN) y
+
+Downloading component Kafka Connect JDBC 10.5.2, provided by Confluent, Inc. from Confluent Hub and installing into /Users/prats/confluent-7.0.1/share/confluent-hub-components 
+Detected Worker's configs: 
+  1. Standard: /Users/prats/confluent-7.0.1/etc/kafka/connect-distributed.properties 
+  2. Standard: /Users/prats/confluent-7.0.1/etc/kafka/connect-standalone.properties 
+  3. Standard: /Users/prats/confluent-7.0.1/etc/schema-registry/connect-avro-distributed.properties 
+  4. Standard: /Users/prats/confluent-7.0.1/etc/schema-registry/connect-avro-standalone.properties 
+  5. Based on CONFLUENT_CURRENT: /var/folders/kn/4wr9__651l37hckxvnnwt4hh0000gn/T/confluent.218210/connect/connect.properties 
+Do you want to update all detected configs? (yN) y
+
+Adding installation directory to plugin path in the following files: 
+  /Users/prats/confluent-7.0.1/etc/kafka/connect-distributed.properties 
+  /Users/prats/confluent-7.0.1/etc/kafka/connect-standalone.properties 
+  /Users/prats/confluent-7.0.1/etc/schema-registry/connect-avro-distributed.properties 
+  /Users/prats/confluent-7.0.1/etc/schema-registry/connect-avro-standalone.properties 
+  /var/folders/kn/4wr9__651l37hckxvnnwt4hh0000gn/T/confluent.218210/connect/connect.properties 
+ 
+Completed 
+@Prateeks-MacBook-Pro ksql-course-master % 
+```
+
+```
+ksql> CREATE SOURCE CONNECTOR `postgres-jdbc-source` WITH (
+>   "connector.class"='io.confluent.connect.jdbc.JdbcSourceConnector',
+>   "connection.url"='jdbc:postgresql://postgres:5432/postgres',
+>   "mode"='incrementing',
+>   "incrementing.column.name"='ref',
+>   "table.whitelist"='carusers',
+>   "connection.password"='postgres',
+>   "connection.user"='postgres',
+>   "topic.prefix"='db-',
+>   "key"='username');
+
+ Message                                
+----------------------------------------
+ Created connector postgres-jdbc-source 
+----------------------------------------
+ksql> 
+```
+
