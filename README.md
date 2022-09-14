@@ -148,3 +148,25 @@ ksql> list streams;
 ksql> 
 ```
 
+- Now, post some data and you should be able to see data, make sure execute select statement first.
+
+```
+kafka-console-producer --bootstrap-server localhost:9092 --topic USERS
+>Deepa,AA
+>John,SL
+>
+
+```
+
+```
+ksql> select name, countrycode from USERS_STREAM emit changes;
++-----------------------------------------------------------+-----------------------------------------------------------+
+|NAME                                                       |COUNTRYCODE                                                |
++-----------------------------------------------------------+-----------------------------------------------------------+
+|Deepa                                                      |AA                                                         |
+|John                                                       |SL                                                         |
+
+
+```
+
+
