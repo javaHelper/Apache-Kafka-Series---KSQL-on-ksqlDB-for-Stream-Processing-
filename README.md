@@ -169,4 +169,77 @@ ksql> select name, countrycode from USERS_STREAM emit changes;
 
 ```
 
+```
+ksql> SET 'auto.offset.reset'='earliest';
+Successfully changed local property 'auto.offset.reset' to 'earliest'. Use the UNSET command to revert your change.
+ksql>
+```
+
+```
+ksql> select name, countrycode  from users_stream emit changes;
++-----------------------------------------------------------+-----------------------------------------------------------+
+|NAME                                                       |COUNTRYCODE                                                |
++-----------------------------------------------------------+-----------------------------------------------------------+
+|Alice                                                      |US                                                         |
+|Bob                                                        |GB                                                         |
+|Prateek                                                    |IND                                                        |
+|Bob                                                        |GB                                                         |
+|Carole                                                     |AU                                                         |
+|Dan                                                        |PO                                                         |
+|Deepa                                                      |AA                                                         |
+|John                                                       |SL                                                         |
+
+
+```
+
+- Get only first 4 records
+
+```
+ksql> select name, countrycode  from users_stream emit changes limit 4;
++-----------------------------------------------------------+-----------------------------------------------------------+
+|NAME                                                       |COUNTRYCODE                                                |
++-----------------------------------------------------------+-----------------------------------------------------------+
+|Alice                                                      |US                                                         |
+|Bob                                                        |GB                                                         |
+|Prateek                                                    |IND                                                        |
+|Bob                                                        |GB                                                         |
+Limit Reached
+Query terminated
+```
+
+- Basic Aggregate
+
+```
+ksql> select countrycode, count(*) from users_stream group by countrycode emit changes;
++-----------------------------------------------------------+-----------------------------------------------------------+
+|COUNTRYCODE                                                |KSQL_COL_0                                                 |
++-----------------------------------------------------------+-----------------------------------------------------------+
+|US                                                         |1                                                          |
+|IND                                                        |1                                                          |
+|GB                                                         |2                                                          |
+|AU                                                         |1                                                          |
+|PO                                                         |1                                                          |
+|AA                                                         |1                                                          |
+|SL                                                         |1                                                          |
+
+```
+
+- How to delete stream
+
+```
+ksql> drop stream if exists users_stream delete topic;
+
+ Message                                           
+---------------------------------------------------
+ Source `USERS_STREAM` (topic: USERS) was dropped. 
+---------------------------------------------------
+ksql> list topics;
+
+ Kafka Topic                 | Partitions | Partition Replicas 
+---------------------------------------------------------------
+ default_ksql_processing_log | 1          | 1                  
+---------------------------------------------------------------
+ksql>
+```
+
 
