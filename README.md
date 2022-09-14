@@ -287,3 +287,21 @@ For runtime statistics and query details run: DESCRIBE <Stream,Table> EXTENDED;
 ksql> 
 ```
 
+```
+kafka-console-producer --bootstrap-server localhost:9092 --topic USERPROFILE 
+>{"userid": 1000, "firstname":"Alison", "lastname":"Smith", "countrycode":"GB", "rating":4.7}    
+>{"userid": 1001, "firstname":"Bob", "lastname":"Smith", "countrycode":"US", "rating":4.2}
+```
+
+```
+ksql> select firstname, lastname, countrycode, rating from USERPROFILE emit changes;
++----------------------------+----------------------------+----------------------------+----------------------------+
+|FIRSTNAME                   |LASTNAME                    |COUNTRYCODE                 |RATING                      |
++----------------------------+----------------------------+----------------------------+----------------------------+
+|Alison                      |Smith                       |GB                          |4.7                         |
+|Bob                         |Smith                       |US                          |4.2                         |
+
+
+```
+
+
