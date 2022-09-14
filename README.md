@@ -307,6 +307,32 @@ ksql> select firstname, lastname, countrycode, rating from USERPROFILE emit chan
 
 # KSQL Datagen Generating Stream
 
+At UNIX prompt
+
+```
+ksql-datagen schema=./datagen/userprofile.avro format=json topic=USERPROFILE key=userid msgRate=1 iterations=1000
+
+(io.confluent.ksql.logging.processing.ProcessingLogConfig:376)
+log4j:WARN No appenders could be found for logger (org.apache.kafka.connect.json.JsonConverterConfig).
+log4j:WARN Please initialize the log4j system properly.
+log4j:WARN See http://logging.apache.org/log4j/1.2/faq.html#noconfig for more info.
+['1000'] --> ([ '1000' | 'Grace' | 'Fawcett' | 'GB' | '3.4' ]) ts:1663149692187
+['1001'] --> ([ '1001' | 'Ivan' | 'Jones' | 'IN' | '3.4' ]) ts:1663149692206
+['1002'] --> ([ '1002' | 'Bob' | 'Edison' | 'GB' | '3.4' ]) ts:1663149693197
+['1003'] --> ([ '1003' | 'Ivan' | 'Fawcett' | 'IN' | '4.4' ]) ts:1663149694198
+['1004'] --> ([ '1004' | 'Eve' | 'Edison' | 'GB' | '2.2' ]) ts:1663149695189
+['1005'] --> ([ '1005' | 'Grace' | 'Jones' | 'AU' | '3.7' ]) ts:1663149696212
+```
+
+At KSQL prompt
+
+-- Review a stream - every 5th row
+```
+print 'USERPROFILE' interval 5;
+```
+
+-------
+
 
 
 
