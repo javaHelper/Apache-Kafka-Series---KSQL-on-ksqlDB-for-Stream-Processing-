@@ -896,7 +896,7 @@ Completed
 ```
 ksql> CREATE SOURCE CONNECTOR `postgres-jdbc-source` WITH (
 >   "connector.class"='io.confluent.connect.jdbc.JdbcSourceConnector',
->   "connection.url"='jdbc:postgresql://postgres:5432/postgres',
+>   "connection.url"='jdbc:postgresql://localhost:5432/postgres',
 >   "mode"='incrementing',
 >   "incrementing.column.name"='ref',
 >   "table.whitelist"='carusers',
@@ -910,5 +910,14 @@ ksql> CREATE SOURCE CONNECTOR `postgres-jdbc-source` WITH (
  Created connector postgres-jdbc-source 
 ----------------------------------------
 ksql> 
+
+ksql> print 'db-carusers' from beginning;
+Key format: KAFKA_STRING
+Value format: AVRO or KAFKA_STRING
+rowtime: 2022/09/14 17:02:35.159 Z, key: Alice, value: {"username": "Alice", "ref": 1}, partition: 0
+rowtime: 2022/09/14 17:02:35.164 Z, key: Bob, value: {"username": "Bob", "ref": 2}, partition: 0
+rowtime: 2022/09/14 17:02:35.1
+
 ```
+
 
