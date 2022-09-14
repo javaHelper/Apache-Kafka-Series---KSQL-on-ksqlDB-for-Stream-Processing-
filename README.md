@@ -803,5 +803,18 @@ select countrycode, numdrivers from countryDrivers where countrycode='AU';
 ```
 ------------
 
+# Kafka Connect with ksqlDB
 
+- Execute below on PostgresDB
+
+```
+CREATE TABLE carusers (
+    username VARCHAR
+  , ref SERIAL PRIMARY KEY
+  );
+
+INSERT INTO carusers (username) VALUES ('Alice');
+INSERT INTO carusers (username) VALUES ('Bob');
+INSERT INTO carusers (username) VALUES ('Charlie');
+```
 
