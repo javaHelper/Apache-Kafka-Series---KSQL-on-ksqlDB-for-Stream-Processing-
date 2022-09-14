@@ -910,10 +910,11 @@ ksql> CREATE SOURCE CONNECTOR `postgres-jdbc-source` WITH (
  Created connector postgres-jdbc-source 
 ----------------------------------------
 ksql> 
+```
 
 <img width="1424" alt="Screenshot 2022-09-14 at 10 38 19 PM" src="https://user-images.githubusercontent.com/54174687/190218601-dba67153-0950-4a73-805a-939bf85c6e26.png">
 
-
+```
 ksql> print 'db-carusers' from beginning;
 Key format: KAFKA_STRING
 Value format: AVRO or KAFKA_STRING
