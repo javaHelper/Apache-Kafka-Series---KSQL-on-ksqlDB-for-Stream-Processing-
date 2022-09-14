@@ -534,6 +534,48 @@ ksql> select countrycode, countryname from countrytable where countrycode='FR' e
 
 ```
 
+# Update a table
+One record updated (UK->United Kingdom), one record added (FR)
+
+At UNIX prompt
+
+```
+kafka-console-producer --broker-list localhost:9092 --topic COUNTRY-CSV --property "parse.key=true"  --property "key.separator=:"
+GB:United Kingdom
+FR:France
+```
+At KSQL prompt
+
+```
+
+select countrycode, countryname from countrytable emit changes;
++-----------------------------------------------------------+-----------------------------------------------------------+
+|COUNTRYCODE                                                |COUNTRYNAME                                                |
++-----------------------------------------------------------+-----------------------------------------------------------+
+|AU                                                         |Australia                                                  |
+|IN                                                         |India                                                      |
+|US                                                         |United States                                              |
+|GB                                                         |United Kingdom                                             |
+|FR                                                         |France                                                     |
+^CQuery terminated
+ksql> select countrycode, countryname from countrytable where countrycode='GB' emit changes limit 1;
++-----------------------------------------------------------+-----------------------------------------------------------+
+|COUNTRYCODE                                                |COUNTRYNAME                                                |
++-----------------------------------------------------------+-----------------------------------------------------------+
+|GB                                                         |United Kingdom                                             |
+Limit Reached
+Query terminated
+ksql> select countrycode, countryname from countrytable where countrycode='FR' emit changes;
++-----------------------------------------------------------+-----------------------------------------------------------+
+|COUNTRYCODE                                                |COUNTRYNAME                                                |
++-----------------------------------------------------------+-----------------------------------------------------------+
+|FR                                                         |France                                                     |
+^CQuery terminated
+ksql> 
+```
+
+------
+```
 
 
 
