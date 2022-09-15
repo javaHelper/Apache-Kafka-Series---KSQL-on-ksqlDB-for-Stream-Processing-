@@ -1211,6 +1211,31 @@ ksql>
 
 # Nested JSON
 
+```
+kafka-topics --bootstrap-server localhost:9092 --create --partitions 1 --replication-factor 1 --topic WEATHERNESTED
+Created topic WEATHERNESTED.
+
+cat demo-weather.json | kafka-console-producer --broker-list localhost:9092 --topic WEATHERNESTED
+```
+
+```
+ksql> CREATE STREAM weather 
+      (city STRUCT <name VARCHAR, country VARCHAR, latitude DOUBLE, longitude DOUBLE>, 
+       description VARCHAR, 
+       clouds BIGINT, 
+       deg BIGINT, 
+       humidity BIGINT, 
+       pressure DOUBLE, 
+       rain DOUBLE) 
+>WITH (KAFKA_TOPIC='WEATHERNESTED', VALUE_FORMAT='JSON');
+
+ Message        
+----------------
+ Stream created 
+----------------
+```
+
+
 
 
 
