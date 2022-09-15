@@ -1417,7 +1417,33 @@ ksql> select * from weathernow where city_name = 'San Diego' emit changes;
 ```
 ------
 
+# Repartition a Stream
 
+```
+kafka-topics --bootstrap-server localhost:9092 --create --partitions 2 --replication-factor 1 --topic DRIVER_PROFILE
+WARNING: Due to limitations in metric names, topics with a period ('.') or underscore ('_') could collide. To avoid issues it is best to use either, but not both.
+Created topic DRIVER_PROFILE.
+
+kafka-console-producer --bootstrap-server localhost:9092 --topic DRIVER_PROFILE
+>{"driver_name":"Mr. Speedy", "countrycode":"AU", "rating":2.4}
+```
+
+```
+ksql> CREATE STREAM DRIVER_PROFILE (driver_name VARCHAR, countrycode VARCHAR, rating DOUBLE) 
+>  WITH (VALUE_FORMAT = 'JSON', KAFKA_TOPIC = 'DRIVER_PROFILE');
+
+ Message        
+----------------
+ Stream created 
+----------------
+
+
+select dp.driver_name, ct.countryname, dp.rating 
+from DRIVER_PROFILE dp 
+left join COUNTRYTABLE ct on ct.countrycode=dp.countrycode emit changes;    
+
+Can't join DRIVER_PROFILE with COUNTRYTABLE since the number of partitions don't match. DRIVER_PROFILE partitions = 2; COUNTRYTABLE partitions = 1. Please repartition either one so that the number of partitions match.
+```
 
 
 
