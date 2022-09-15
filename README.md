@@ -1614,12 +1614,18 @@ from requested_journey;
 ```
 
 ```
-select user + ' is travelling ' + cast(round(dist) as varchar) +' km to ' + city_name + ' where the weather is reported as ' + weather_description 
-from ridetodest emit changes;  
-
-Alice is at (52,0) and is travelling 215 km to Manchester where it is SUNNY
-Heidi is at (51,-1) and is travelling 88 km to London where it is heavy rain
-Grace is at (50,-1) and is travelling 138 km to London where it is heavy rain
+>from ridetodest emit changes;
++---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+|KSQL_COL_0                                                                                                                                                                             |
++---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+|Frank is travelling 298 km to Liverpool where the weather is reported as haze                                                                                                          |
+|Ted is travelling 824 km to San Francisco where the weather is reported as SUNNY                                                                                                       |
+|Grace is travelling 131 km to London where the weather is reported as heavy rain                                                                                                       |
+|Judy is travelling 1153 km to San Diego where the weather is reported as SUNNY                                                                                                         |
+|Carol is travelling 132 km to London where the weather is reported as heavy rain                                                                                                       |
+|Sybil is travelling 1925 km to San Francisco where the weather is reported as SUNNY                                                                                                    |
+|Dan is travelling 81 km to Birmingham where the weather is reported as light rain                                                                                                      |
+^CQuery terminated
 ```
 -------
 
