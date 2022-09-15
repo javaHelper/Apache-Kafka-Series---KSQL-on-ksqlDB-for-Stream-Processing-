@@ -1469,6 +1469,87 @@ ksql> select dp2.driver_name, ct.countryname, dp2.rating
 
 # Merging Streams
 
+Merging Streams; Concat Topics with INSERT
+
+- create stream of requested rides in Europe using data gen
+- create stream of requested rides in USA using data gen
+- combine into single stream of all requested rides using INSERT
+
+At UNIX prompt
+```
+ksql-datagen schema=./datagen/riderequest-europe.avro  format=avro topic=riderequest-europe key=rideid msgRate=1 iterations=1000
+
+ksql-datagen schema=./datagen/riderequest-america.avro format=avro topic=riderequest-america key=rideid msgRate=1 iterations=1000
+```
+
+```
+ksql> create stream rr_america_raw with (kafka_topic='riderequest-america', value_format='avro');
+
+ Message        
+----------------
+ Stream created 
+----------------
+
+ksql> create stream rr_europe_raw with (kafka_topic='riderequest-europe', value_format='avro');
+
+ Message        
+----------------
+ Stream created 
+----------------
+
+
+ksql> select * from rr_america_raw emit changes; 
++----------------------------+----------------------------+----------------------------+----------------------------+----------------------------+----------------------------+
+|REQUESTTIME                 |LATITUDE                    |LONGITUDE                   |RIDEID                      |USER                        |CITY_NAME                   |
++----------------------------+----------------------------+----------------------------+----------------------------+----------------------------+----------------------------+
+|1663237369403               |41.54681841085044           |-119.28781289077337         |ride_280                    |Niaj                        |San Francisco               |
+|1663237370400               |40.03382600692885           |-114.62102485949195         |ride_367                    |Peggy                       |San Francisco               |
+|1663237371406               |37.7608935965147            |-120.04987351818563         |ride_890                    |Oscar                       |San Francisco               |
+^CQuery terminated
+
+
+ksql> select * from rr_europe_raw emit changes;
++----------------------------+----------------------------+----------------------------+----------------------------+----------------------------+----------------------------+
+|REQUESTTIME                 |LATITUDE                    |LONGITUDE                   |RIDEID                      |USER                        |CITY_NAME                   |
++----------------------------+----------------------------+----------------------------+----------------------------+----------------------------+----------------------------+
+|1663237378339               |50.73652900611825           |0.727583252242852           |ride_349                    |Heidi                       |Bristol                     |
+|1663237379338               |50.167968752035065          |0.39014762211840504         |ride_405                    |Heidi                       |Manchester                  |
+|1663237380339               |51.752215870339924          |-1.5301583880865524         |ride_277                    |Grace                       |Birmingham                  |
+^CQuery terminated
+
+ksql> create stream rr_world as select 'Europe' as data_source, * from rr_europe_raw;  
+
+ Message                                
+----------------------------------------
+ Created query with ID CSAS_RR_WORLD_19 
+----------------------------------------
+
+
+ksql> insert into rr_world      select 'Americas' as data_source, * from rr_america_raw;  
+
+ Message                              
+--------------------------------------
+ Created query with ID INSERTQUERY_21 
+--------------------------------------
+
+
+ksql> select * from rr_world emit changes; 
++------------------------+------------------------+------------------------+------------------------+------------------------+------------------------+------------------------+
+|DATA_SOURCE             |REQUESTTIME             |LATITUDE                |LONGITUDE               |RIDEID                  |USER                    |CITY_NAME               |
++------------------------+------------------------+------------------------+------------------------+------------------------+------------------------+------------------------+
+|Europe                  |1663237402337           |52.49639893055915       |0.24171449991982819     |ride_176                |Eve                     |Liverpool               |
+|Americas                |1663237402404           |43.86023421914043       |-118.16159631421128     |ride_485                |Peggy                   |San Jose                |
+|Europe                  |1663237403338           |52.966277011699         |-1.0045174272129418     |ride_469                |Dan                     |London                  |
+|Americas                |1663237403406           |38.65676205192069       |-111.79710969805046     |ride_221                |Walter                  |San Francisco           |
+|Europe                  |1663237404336           |52.05839531460576       |1.2695212736232615      |ride_282                |Dan                     |Liverpool               |
+|Americas                |1663237404406           |38.25762873716452       |-110.40645158820462     |ride_812                |Walter                  |San Jose                |
+|Europe                  |1663237405339           |51.58796132276846       |1.0061955808862488      |ride_216                |Ivan                    |London                  |
+|Americas                |1663237405405           |44.51558806639321       |-114.37038028227151     |ride_825                |Ted                     |Los Angeles             |
+|Americas                |1663237406406           |41.936591592854974      |-101.99533085062717     |ride_683                |Oscar                   |San Francisco           |
+|Europe                  |1663237406338           |52.034602578730144      |0.18035573731369992     |ride_281                |Frank                   |London                  |
+
+```
+
 
 
 
