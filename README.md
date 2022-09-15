@@ -1122,6 +1122,101 @@ prateekashtikar@Prateeks-MacBook-Pro ksql-course-master %
 
 # Avro Schema Evolution
 
+```sh
+kafka-avro-console-producer  --broker-list localhost:9092 --topic COMPLAINTS_AVRO \
+--property value.schema='
+{
+  "type": "record",
+  "name": "myrecord",
+  "fields": [
+      {"name": "customer_name",  "type": "string" }
+    , {"name": "complaint_type", "type": "string" }
+    , {"name": "trip_cost", "type": "float" }
+    , {"name": "new_customer", "type": "boolean"}
+    , {"name": "number_of_rides", "type": "int", "default" : 1}
+  ]
+}'
+{"customer_name":"Ed", "complaint_type":"Dirty car", "trip_cost": 29.10, "new_customer": false, "number_of_rides": 22}
+```
+
+```
+ksql> select * from complaints_avro emit changes;
++------------------------------+------------------------------+------------------------------+------------------------------+
+|CUSTOMER_NAME                 |COMPLAINT_TYPE                |TRIP_COST                     |NEW_CUSTOMER                  |
++------------------------------+------------------------------+------------------------------+------------------------------+
+|Carol                         |Late arrival                  |19.600000381469727            |false                         |
+|Ed                            |Dirty car                     |29.100000381469727            |false                         |
+^CQuery terminated
+ksql> 
+
+
+ksql> describe complaints_avro;
+
+Name                 : COMPLAINTS_AVRO
+ Field          | Type            
+----------------------------------
+ CUSTOMER_NAME  | VARCHAR(STRING) 
+ COMPLAINT_TYPE | VARCHAR(STRING) 
+ TRIP_COST      | DOUBLE          
+ NEW_CUSTOMER   | BOOLEAN         
+----------------------------------
+For runtime statistics and query details run: DESCRIBE <Stream,Table> EXTENDED;
+ksql>
+```
+
+<img width="1129" alt="Screenshot 2022-09-15 at 11 02 11 AM" src="https://user-images.githubusercontent.com/54174687/190322279-327cec37-5775-4f7a-89e3-c455d271549f.png">
+
+```
+ksql> create stream complaints_avro_v2 with (kafka_topic='COMPLAINTS_AVRO', value_format='AVRO');
+
+ Message        
+----------------
+ Stream created 
+----------------
+ksql> describe complaints_avro_v2;
+
+Name                 : COMPLAINTS_AVRO_V2
+ Field           | Type            
+-----------------------------------
+ CUSTOMER_NAME   | VARCHAR(STRING) 
+ COMPLAINT_TYPE  | VARCHAR(STRING) 
+ TRIP_COST       | DOUBLE          
+ NEW_CUSTOMER    | BOOLEAN         
+ NUMBER_OF_RIDES | INTEGER         
+-----------------------------------
+For runtime statistics and query details run: DESCRIBE <Stream,Table> EXTENDED;
+ksql> 
+
+ksql> list streams;
+
+ Stream Name         | Kafka Topic                 | Key Format | Value Format | Windowed 
+------------------------------------------------------------------------------------------
+ COMPLAINTS_AVRO     | COMPLAINTS_AVRO             | KAFKA      | AVRO         | false    
+ COMPLAINTS_AVRO_V2  | COMPLAINTS_AVRO             | KAFKA      | AVRO         | false    
+ COMPLAINTS_CSV      | COMPLAINTS_CSV              | KAFKA      | DELIMITED    | false    
+ COMPLAINTS_JSON     | COMPLAINTS_JSON             | KAFKA      | JSON         | false    
+ KSQL_PROCESSING_LOG | default_ksql_processing_log | KAFKA      | JSON         | false    
+------------------------------------------------------------------------------------------
+ksql> 
+
+ksql> select * from complaints_avro_v2 emit changes;
++-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+|CUSTOMER_NAME          |COMPLAINT_TYPE         |TRIP_COST              |NEW_CUSTOMER           |NUMBER_OF_RIDES        |
++-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
+^CQuery terminated
+ksql> 
+```
+
+-------
+
+# Nested JSON
+
+
+
+
+
+
+
 
 
 
