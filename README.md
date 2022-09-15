@@ -1484,19 +1484,16 @@ ksql-datagen schema=./datagen/riderequest-america.avro format=avro topic=ridereq
 
 ```
 ksql> create stream rr_america_raw with (kafka_topic='riderequest-america', value_format='avro');
-
  Message        
 ----------------
  Stream created 
 ----------------
 
 ksql> create stream rr_europe_raw with (kafka_topic='riderequest-europe', value_format='avro');
-
  Message        
 ----------------
  Stream created 
 ----------------
-
 
 ksql> select * from rr_america_raw emit changes; 
 +----------------------------+----------------------------+----------------------------+----------------------------+----------------------------+----------------------------+
@@ -1506,7 +1503,6 @@ ksql> select * from rr_america_raw emit changes;
 |1663237370400               |40.03382600692885           |-114.62102485949195         |ride_367                    |Peggy                       |San Francisco               |
 |1663237371406               |37.7608935965147            |-120.04987351818563         |ride_890                    |Oscar                       |San Francisco               |
 ^CQuery terminated
-
 
 ksql> select * from rr_europe_raw emit changes;
 +----------------------------+----------------------------+----------------------------+----------------------------+----------------------------+----------------------------+
@@ -1518,20 +1514,16 @@ ksql> select * from rr_europe_raw emit changes;
 ^CQuery terminated
 
 ksql> create stream rr_world as select 'Europe' as data_source, * from rr_europe_raw;  
-
  Message                                
 ----------------------------------------
  Created query with ID CSAS_RR_WORLD_19 
 ----------------------------------------
 
-
 ksql> insert into rr_world      select 'Americas' as data_source, * from rr_america_raw;  
-
  Message                              
 --------------------------------------
  Created query with ID INSERTQUERY_21 
 --------------------------------------
-
 
 ksql> select * from rr_world emit changes; 
 +------------------------+------------------------+------------------------+------------------------+------------------------+------------------------+------------------------+
@@ -1547,8 +1539,49 @@ ksql> select * from rr_world emit changes;
 |Americas                |1663237405405           |44.51558806639321       |-114.37038028227151     |ride_825                |Ted                     |Los Angeles             |
 |Americas                |1663237406406           |41.936591592854974      |-101.99533085062717     |ride_683                |Oscar                   |San Francisco           |
 |Europe                  |1663237406338           |52.034602578730144      |0.18035573731369992     |ride_281                |Frank                   |London                  |
+```
+-----------
+
+# Windowing
+
+- how many requests are arriving each time period
+- At KSQL prompt
 
 ```
+select data_source, city_name, count(*) 
+from rr_world 
+window tumbling (size 60 seconds) 
+group by data_source, city_name emit changes;  
+```
+
+```
+select data_source, city_name, COLLECT_LIST(user)
+from rr_world 
+window tumbling (size 60 seconds) 
+group by data_source, city_name emit changes;   
+```
+
+```
+select data_source, city_name, COLLECT_LIST(user) 
+from rr_world WINDOW SESSION (60 SECONDS) 
+group by data_source, city_name emit changes;
+```
+
+```
+select TIMESTAMPTOSTRING(WindowStart, 'HH:mm:ss')
+, TIMESTAMPTOSTRING(WindowEnd, 'HH:mm:ss')
+, data_source
+, TOPK(city_name, 3)
+, count(*)
+FROM rr_world
+WINDOW TUMBLING (SIZE 1 minute)
+group by data_source
+emit changes;
+```
+
+-----------
+
+# Geospatial
 
 
 
