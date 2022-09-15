@@ -1215,7 +1215,8 @@ ksql>
 kafka-topics --bootstrap-server localhost:9092 --create --partitions 1 --replication-factor 1 --topic WEATHERNESTED
 Created topic WEATHERNESTED.
 
-cat demo-weather.json | kafka-console-producer --broker-list localhost:9092 --topic WEATHERNESTED
+cat demo-weather.json | kafka-console-producer --bootstrap-server localhost:9092 --topic WEATHERNESTED
+
 ```
 
 ```
@@ -1233,6 +1234,100 @@ ksql> CREATE STREAM weather
 ----------------
  Stream created 
 ----------------
+
+
+ksql> select * from weather emit changes;
++---------------+---------------+---------------+---------------+---------------+---------------+---------------+
+|CITY           |DESCRIPTION    |CLOUDS         |DEG            |HUMIDITY       |PRESSURE       |RAIN           |
++---------------+---------------+---------------+---------------+---------------+---------------+---------------+
+|{NAME=Sydney, C|light rain     |92             |26             |94             |1025.12        |1.25           |
+|OUNTRY=AU, LATI|               |               |               |               |               |               |
+|TUDE=-33.8688, |               |               |               |               |               |               |
+|LONGITUDE=151.2|               |               |               |               |               |               |
+|093}           |               |               |               |               |               |               |
+|{NAME=Seattle, |heavy rain     |92             |19             |94             |1025.12        |7.0            |
+|COUNTRY=US, LAT|               |               |               |               |               |               |
+|ITUDE=47.6062, |               |               |               |               |               |               |
+|LONGITUDE=-122.|               |               |               |               |               |               |
+|3321}          |               |               |               |               |               |               |
+|{NAME=San Franc|fog            |92             |19             |94             |1025.12        |10.0           |
+|isco, COUNTRY=U|               |               |               |               |               |               |
+|S, LATITUDE=37.|               |               |               |               |               |               |
+|7749, LONGITUDE|               |               |               |               |               |               |
+|=-122.4194}    |               |               |               |               |               |               |
+|{NAME=San Jose,|light rain     |92             |23             |94             |1025.12        |3.0            |
+| COUNTRY=US, LA|               |               |               |               |               |               |
+|TITUDE=37.3382,|               |               |               |               |               |               |
+| LONGITUDE=-121|               |               |               |               |               |               |
+|.8863}         |               |               |               |               |               |               |
+|{NAME=Fresno, C|heavy rain     |92             |22             |94             |1025.12        |6.0            |
+|OUNTRY=US, LATI|               |               |               |               |               |               |
+|TUDE=36.7378, L|               |               |               |               |               |               |
+|ONGITUDE=-119.7|               |               |               |               |               |               |
+|871}           |               |               |               |               |               |               |
+|{NAME=Los Angel|haze           |92             |19             |94             |1025.12        |2.0            |
+|es, COUNTRY=US,|               |               |               |               |               |               |
+| LATITUDE=34.05|               |               |               |               |               |               |
+|22, LONGITUDE=-|               |               |               |               |               |               |
+|118.2437}      |               |               |               |               |               |               |
+|{NAME=San Diego|fog            |92             |19             |94             |1025.12        |2.0            |
+|, COUNTRY=US, L|               |               |               |               |               |               |
+|ATITUDE=32.7157|               |               |               |               |               |               |
+|, LONGITUDE=-11|               |               |               |               |               |               |
+|7.1611}        |               |               |               |               |               |               |
+|{NAME=Birmingha|light rain     |92             |26             |94             |1025.12        |4.0            |
+|m, COUNTRY=UK, |               |               |               |               |               |               |
+|LATITUDE=52.486|               |               |               |               |               |               |
+|2, LONGITUDE=-1|               |               |               |               |               |               |
+|.8904}         |               |               |               |               |               |               |
+|{NAME=London, C|heavy rain     |92             |19             |94             |1025.12        |8.0            |
+|OUNTRY=GB, LATI|               |               |               |               |               |               |
+|TUDE=51.5074, L|               |               |               |               |               |               |
+|ONGITUDE=-0.127|               |               |               |               |               |               |
+|8}             |               |               |               |               |               |               |
+|{NAME=Mancheste|fog            |92             |26             |94             |1025.12        |3.0            |
+|r, COUNTRY=GB, |               |               |               |               |               |               |
+|LATITUDE=53.480|               |               |               |               |               |               |
+|8, LONGITUDE=-2|               |               |               |               |               |               |
+|.2426}         |               |               |               |               |               |               |
+|{NAME=Bristol, |light rain     |92             |19             |94             |1025.12        |3.0            |
+|COUNTRY=GB, LAT|               |               |               |               |               |               |
+|ITUDE=51.4545, |               |               |               |               |               |               |
+|LONGITUDE=-2.58|               |               |               |               |               |               |
+|79}            |               |               |               |               |               |               |
+|{NAME=Newcastle|heavy rain     |92             |19             |94             |1025.12        |12.0           |
+|, COUNTRY=GB, L|               |               |               |               |               |               |
+|ATITUDE=54.9783|               |               |               |               |               |               |
+|, LONGITUDE=-1.|               |               |               |               |               |               |
+|6178}          |               |               |               |               |               |               |
+|{NAME=Liverpool|haze           |92             |23             |94             |1025.12        |3.0            |
+|, COUNTRY=GB, L|               |               |               |               |               |               |
+|ATITUDE=53.4084|               |               |               |               |               |               |
+|, LONGITUDE=-2.|               |               |               |               |               |               |
+|9916}          |               |               |               |               |               |               |
+
+
+ksql> SELECT city->name AS city_name, city->country AS city_country, city->latitude as latitude, city->longitude as longitude, description, rain from weather emit changes;
++-------------------------+-------------------------+-------------------------+-------------------------+-------------------------+-------------------------+
+|CITY_NAME                |CITY_COUNTRY             |LATITUDE                 |LONGITUDE                |DESCRIPTION              |RAIN                     |
++-------------------------+-------------------------+-------------------------+-------------------------+-------------------------+-------------------------+
+|Sydney                   |AU                       |-33.8688                 |151.2093                 |light rain               |1.25                     |
+|Seattle                  |US                       |47.6062                  |-122.3321                |heavy rain               |7.0                      |
+|San Francisco            |US                       |37.7749                  |-122.4194                |fog                      |10.0                     |
+|San Jose                 |US                       |37.3382                  |-121.8863                |light rain               |3.0                      |
+|Fresno                   |US                       |36.7378                  |-119.7871                |heavy rain               |6.0                      |
+|Los Angeles              |US                       |34.0522                  |-118.2437                |haze                     |2.0                      |
+|San Diego                |US                       |32.7157                  |-117.1611                |fog                      |2.0                      |
+|Birmingham               |UK                       |52.4862                  |-1.8904                  |light rain               |4.0                      |
+|London                   |GB                       |51.5074                  |-0.1278                  |heavy rain               |8.0                      |
+|Manchester               |GB                       |53.4808                  |-2.2426                  |fog                      |3.0                      |
+|Bristol                  |GB                       |51.4545                  |-2.5879                  |light rain               |3.0                      |
+|Newcastle                |GB                       |54.9783                  |-1.6178                  |heavy rain               |12.0                     |
+|Liverpool                |GB                       |53.4084                  |-2.9916                  |haze                     |3.0                      |
+
+Press CTRL-C to interrupt
+
+
 ```
 
 
