@@ -1326,9 +1326,78 @@ ksql> SELECT city->name AS city_name, city->country AS city_country, city->latit
 |Liverpool                |GB                       |53.4084                  |-2.9916                  |haze                     |3.0                      |
 
 Press CTRL-C to interrupt
+```
+--------
 
+# Build a rekeyed table
 
 ```
+ksql> create stream weatherraw with (value_format='AVRO') as SELECT city->name AS city_name, city->country AS city_country, city->latitude as latitude, city->longitude as longitude, description, rain from weather ;  
+
+ Message                                 
+-----------------------------------------
+ Created query with ID CSAS_WEATHERRAW_3 
+-----------------------------------------
+ksql>
+
+ksql> create stream weatherrekeyed as select * from weatherraw partition by city_name;
+
+ Message                                     
+---------------------------------------------
+ Created query with ID CSAS_WEATHERREKEYED_5 
+---------------------------------------------
+ksql> 
+
+ksql> select * from weatherrekeyed emit changes;
++-------------------------+-------------------------+-------------------------+-------------------------+-------------------------+-------------------------+
+|CITY_NAME                |CITY_COUNTRY             |LATITUDE                 |LONGITUDE                |DESCRIPTION              |RAIN                     |
++-------------------------+-------------------------+-------------------------+-------------------------+-------------------------+-------------------------+
+|Sydney                   |AU                       |-33.8688                 |151.2093                 |light rain               |1.25                     |
+|Seattle                  |US                       |47.6062                  |-122.3321                |heavy rain               |7.0                      |
+|San Francisco            |US                       |37.7749                  |-122.4194                |fog                      |10.0                     |
+|San Jose                 |US                       |37.3382                  |-121.8863                |light rain               |3.0                      |
+|Fresno                   |US                       |36.7378                  |-119.7871                |heavy rain               |6.0                      |
+|Los Angeles              |US                       |34.0522                  |-118.2437                |haze                     |2.0                      |
+|San Diego                |US                       |32.7157                  |-117.1611                |fog                      |2.0                      |
+|Birmingham               |UK                       |52.4862                  |-1.8904                  |light rain               |4.0                      |
+|London                   |GB                       |51.5074                  |-0.1278                  |heavy rain               |8.0                      |
+|Manchester               |GB                       |53.4808                  |-2.2426                  |fog                      |3.0                      |
+|Bristol                  |GB                       |51.4545                  |-2.5879                  |light rain               |3.0                      |
+|Newcastle                |GB                       |54.9783                  |-1.6178                  |heavy rain               |12.0                     |
+|Liverpool                |GB                       |53.4084                  |-2.9916                  |haze                     |3.0                      |
+^CQuery terminated
+
+
+ksql> create table weathernow (city_name varchar primary key, city_country varchar, latitude double, longitude double, description varchar, rain double) with (kafka_topic='WEATHERREKEYED', value_format='AVRO');
+
+ Message       
+---------------
+ Table created 
+---------------
+
+ksql> select * from weathernow emit changes;
++-------------------------+-------------------------+-------------------------+-------------------------+-------------------------+-------------------------+
+|CITY_NAME                |CITY_COUNTRY             |LATITUDE                 |LONGITUDE                |DESCRIPTION              |RAIN                     |
++-------------------------+-------------------------+-------------------------+-------------------------+-------------------------+-------------------------+
+|Sydney                   |AU                       |-33.8688                 |151.2093                 |light rain               |1.25                     |
+|Seattle                  |US                       |47.6062                  |-122.3321                |heavy rain               |7.0                      |
+|San Francisco            |US                       |37.7749                  |-122.4194                |fog                      |10.0                     |
+|San Jose                 |US                       |37.3382                  |-121.8863                |light rain               |3.0                      |
+|Fresno                   |US                       |36.7378                  |-119.7871                |heavy rain               |6.0                      |
+|Los Angeles              |US                       |34.0522                  |-118.2437                |haze                     |2.0                      |
+|San Diego                |US                       |32.7157                  |-117.1611                |fog                      |2.0                      |
+|Birmingham               |UK                       |52.4862                  |-1.8904                  |light rain               |4.0                      |
+|London                   |GB                       |51.5074                  |-0.1278                  |heavy rain               |8.0                      |
+|Manchester               |GB                       |53.4808                  |-2.2426                  |fog                      |3.0                      |
+|Bristol                  |GB                       |51.4545                  |-2.5879                  |light rain               |3.0                      |
+|Newcastle                |GB                       |54.9783                  |-1.6178                  |heavy rain               |12.0                     |
+|Liverpool                |GB                       |53.4084                  |-2.9916                  |haze                     |3.0                      |
+```
+
+------
+
+
+
 
 
 
