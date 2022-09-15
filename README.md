@@ -1392,8 +1392,29 @@ ksql> select * from weathernow emit changes;
 |Bristol                  |GB                       |51.4545                  |-2.5879                  |light rain               |3.0                      |
 |Newcastle                |GB                       |54.9783                  |-1.6178                  |heavy rain               |12.0                     |
 |Liverpool                |GB                       |53.4084                  |-2.9916                  |haze                     |3.0                      |
+
+
+ksql> select * from weathernow where city_name = 'San Diego' emit changes;
++-----------------------------+-----------------------------+-----------------------------+-----------------------------+-----------------------------+-----------------------------+
+|CITY_NAME                    |CITY_COUNTRY                 |LATITUDE                     |LONGITUDE                    |DESCRIPTION                  |RAIN                         |
++-----------------------------+-----------------------------+-----------------------------+-----------------------------+-----------------------------+-----------------------------+
+|San Diego                    |US                           |32.7157                      |-117.1611                    |fog                          |2.0                          |
+^CQuery terminated
+ksql> 
+
 ```
 
+```
+cat demo-weather-changes.json | kafka-console-producer --broker-list localhost:9092 --topic WEATHERNESTED
+```
+
+```
+ksql> select * from weathernow where city_name = 'San Diego' emit changes;
++----------------------------+----------------------------+----------------------------+----------------------------+----------------------------+----------------------------+
+|CITY_NAME                   |CITY_COUNTRY                |LATITUDE                    |LONGITUDE                   |DESCRIPTION                 |RAIN                        |
++----------------------------+----------------------------+----------------------------+----------------------------+----------------------------+----------------------------+
+|San Diego                   |US                          |32.7157                     |-117.1611                   |SUNNY                       |2.0                         |
+```
 ------
 
 
