@@ -966,6 +966,163 @@ kafka-console-producer --bootstrap-server localhost:9092 --topic COMPLAINTS_CSV
 >Alice, Late arrival, 43.10, true       
 ```
 
+# CSV - experience with bad data
+
+when u sent bad data, nothing will in thw stream, instead you should be able to see logs of ksql-server for error.
+
+```
+kafka-console-producer --bootstrap-server localhost:9092 --topic COMPLAINTS_CSV
+>Alice, Late arrival, 43.10, true      
+>Alice, Bob and Carole, Bad driver, 43.10, true
+```
+
+-----
+
+# JSON Data
+
+```sh
+kafka-topics --bootstrap-server localhost:9092 --create --partitions 1 --replication-factor 1 --topic COMPLAINTS_JSON
+WARNING: Due to limitations in metric names, topics with a period ('.') or underscore ('_') could collide. To avoid issues it is best to use either, but not both.
+Created topic COMPLAINTS_JSON.
+```
+
+```
+ksql> CREATE STREAM complaints_json (customer_name VARCHAR, complaint_type VARCHAR, trip_cost DOUBLE, new_customer BOOLEAN) \
+>  WITH (VALUE_FORMAT = 'JSON', KAFKA_TOPIC = 'COMPLAINTS_JSON');
+
+ Message        
+----------------
+ Stream created 
+----------------
+ksql> 
+
+ksql> select * from complaints_json emit changes;
++------------------------------+------------------------------+------------------------------+------------------------------+
+|CUSTOMER_NAME                 |COMPLAINT_TYPE                |TRIP_COST                     |NEW_CUSTOMER                  |
++------------------------------+------------------------------+------------------------------+------------------------------+
+|Alice, Bob and Carole         |Bad driver                    |22.4                          |true                          |
+```
+
+```
+kafka-console-producer --bootstrap-server localhost:9092 --topic COMPLAINTS_JSON
+>{"customer_name":"Alice, Bob and Carole", "complaint_type":"Bad driver", "trip_cost": 22.40, "new_customer": true}    
+>
+```
+
+# experience with bad data
+
+```
+kafka-console-producer --bootstrap-server localhost:9092 --topic COMPLAINTS_JSON
+>{"customer_name":"Alice, Bob and Carole", "complaint_type":"Bad driver", "trip_cost": 22.40, "new_customer": true}    
+>{"customer_name":"Bad Data", "complaint_type":"Bad driver", "trip_cost": 22.40, "new_customer": ShouldBeABoolean}
+```
+
+Review the KSQL Server logs `confluent local services ksql-server log`
+
+Now look at the KSQL Server log. We can see bad data is noticed; but hidden in a conversion error message
+
+```
+  at [Source: (byte[])"{"customer_name":"Bad Data", "complaint_type":"Bad driver", "trip_cost": 22.40, "new_customer": ShouldBeABoolean}"; line: 1, column: 105]
+ Caused by: com.fasterxml.jackson.core.JsonParseException: Unrecognized token 'ShouldBeABoolean': was expecting ('true', 'false' or 'null')
+ ```
+ --------------
+ 
+ # Avro Data
+ 
+ ```sh
+ ksql-course-master % kafka-topics --bootstrap-server localhost:9092 --create --partitions 1 --replication-factor 1 --topic COMPLAINTS_AVRO
+WARNING: Due to limitations in metric names, topics with a period ('.') or underscore ('_') could collide. To avoid issues it is best to use either, but not both.
+Created topic COMPLAINTS_AVRO.
+ ```
+ 
+ ```
+ ksql-course-master % kafka-avro-console-producer  --bootstrap-server localhost:9092 --topic COMPLAINTS_AVRO \
+--property value.schema='
+{
+  "type": "record",
+  "name": "myrecord",
+  "fields": [
+      {"name": "customer_name",  "type": "string" }
+    , {"name": "complaint_type", "type": "string" }
+    , {"name": "trip_cost", "type": "float" }
+    , {"name": "new_customer", "type": "boolean"}
+  ]
+}'
+{"customer_name":"Carol", "complaint_type":"Late arrival", "trip_cost": 19.60, "new_customer": false}
+
+```
+ 
+```
+ksql> print 'COMPLAINTS_AVRO' from beginning;
+Key format: ¯\_(ツ)_/¯ - no data processed
+Value format: AVRO
+rowtime: 2022/09/15 05:15:53.450 Z, key: <null>, value: {"customer_name": "Carol", "complaint_type": "Late arrival", "trip_cost": 19.6, "new_customer": false}, partition: 0
+
+
+ksql> create stream complaints_avro with (kafka_topic='COMPLAINTS_AVRO', value_format='AVRO');
+
+ Message        
+----------------
+ Stream created 
+----------------
+ksql> 
+
+ksql> select * from complaints_avro emit changes;
++------------------------------+------------------------------+------------------------------+------------------------------+
+|CUSTOMER_NAME                 |COMPLAINT_TYPE                |TRIP_COST                     |NEW_CUSTOMER                  |
++------------------------------+------------------------------+------------------------------+------------------------------+
+|Carol                         |Late arrival                  |19.600000381469727            |false                         |
+
+```
+
+# experience with bad data
+
+```
+ksql-course-master % kafka-avro-console-producer  --bootstrap-server localhost:9092 --topic COMPLAINTS_AVRO \
+--property value.schema='
+{
+  "type": "record",
+  "name": "myrecord",
+  "fields": [
+      {"name": "customer_name",  "type": "string" }
+    , {"name": "complaint_type", "type": "string" }
+    , {"name": "trip_cost", "type": "float" }
+    , {"name": "new_customer", "type": "boolean"}
+  ]
+}'
+{"customer_name":"Carol", "complaint_type":"Late arrival", "trip_cost": 19.60, "new_customer": false}
+{"customer_name":"Bad Data", "complaint_type":"Bad driver", "trip_cost": 22.40, "new_customer": ShouldBeABoolean}
+org.apache.kafka.common.errors.SerializationException: Error deserializing json {"customer_name":"Bad Data", "complaint_type":"Bad driver", "trip_cost": 22.40, "new_customer": ShouldBeABoolean} to Avro of schema {"type":"record","name":"myrecord","fields":[{"name":"customer_name","type":"string"},{"name":"complaint_type","type":"string"},{"name":"trip_cost","type":"float"},{"name":"new_customer","type":"boolean"}]}
+	at io.confluent.kafka.formatter.AvroMessageReader.readFrom(AvroMessageReader.java:131)
+	at io.confluent.kafka.formatter.SchemaMessageReader.readMessage(SchemaMessageReader.java:325)
+	at kafka.tools.ConsoleProducer$.main(ConsoleProducer.scala:51)
+	at kafka.tools.ConsoleProducer.main(ConsoleProducer.scala)
+Caused by: com.fasterxml.jackson.core.JsonParseException: Unrecognized token 'ShouldBeABoolean': was expecting (JSON String, Number, Array, Object or token 'null', 'true' or 'false')
+ at [Source: (String)"{"customer_name":"Bad Data", "complaint_type":"Bad driver", "trip_cost": 22.40, "new_customer": ShouldBeABoolean}"; line: 1, column: 113]
+	at com.fasterxml.jackson.core.JsonParser._constructError(JsonParser.java:2337)
+	at com.fasterxml.jackson.core.base.ParserMinimalBase._reportError(ParserMinimalBase.java:720)
+	at com.fasterxml.jackson.core.json.ReaderBasedJsonParser._reportInvalidToken(ReaderBasedJsonParser.java:2903)
+	at com.fasterxml.jackson.core.json.ReaderBasedJsonParser._handleOddValue(ReaderBasedJsonParser.java:1949)
+	at com.fasterxml.jackson.core.json.ReaderBasedJsonParser.nextToken(ReaderBasedJsonParser.java:781)
+	at org.apache.avro.io.JsonDecoder.readFloat(JsonDecoder.java:186)
+	at org.apache.avro.io.ResolvingDecoder.readFloat(ResolvingDecoder.java:182)
+	at org.apache.avro.generic.GenericDatumReader.readWithoutConversion(GenericDatumReader.java:199)
+	at org.apache.avro.generic.GenericDatumReader.read(GenericDatumReader.java:160)
+	at org.apache.avro.generic.GenericDatumReader.readField(GenericDatumReader.java:259)
+	at org.apache.avro.generic.GenericDatumReader.readRecord(GenericDatumReader.java:247)
+	at org.apache.avro.generic.GenericDatumReader.readWithoutConversion(GenericDatumReader.java:179)
+	at org.apache.avro.generic.GenericDatumReader.read(GenericDatumReader.java:160)
+	at org.apache.avro.generic.GenericDatumReader.read(GenericDatumReader.java:153)
+	at io.confluent.kafka.schemaregistry.avro.AvroSchemaUtils.toObject(AvroSchemaUtils.java:213)
+	at io.confluent.kafka.formatter.AvroMessageReader.readFrom(AvroMessageReader.java:124)
+	... 3 more
+prateekashtikar@Prateeks-MacBook-Pro ksql-course-master % 
+```
+----
+
+# Avro Schema Evolution
+
+
 
 
 
