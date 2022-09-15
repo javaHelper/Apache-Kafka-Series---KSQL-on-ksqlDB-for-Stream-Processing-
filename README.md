@@ -1445,6 +1445,31 @@ left join COUNTRYTABLE ct on ct.countrycode=dp.countrycode emit changes;
 Can't join DRIVER_PROFILE with COUNTRYTABLE since the number of partitions don't match. DRIVER_PROFILE partitions = 2; COUNTRYTABLE partitions = 1. Please repartition either one so that the number of partitions match.
 ```
 
+We can fix this by co-partitioning, use the PARTITION BY clause. At KSQL prompt
+
+```
+ksql> create stream driverprofile_rekeyed with (partitions=1) as select * from DRIVER_PROFILE partition by driver_name; 
+
+ Message                                             
+-----------------------------------------------------
+ Created query with ID CSAS_DRIVERPROFILE_REKEYED_13 
+-----------------------------------------------------
+ksql>
+
+
+ksql> select dp2.driver_name, ct.countryname, dp2.rating 
+>from DRIVERPROFILE_REKEYED dp2 
+>left join COUNTRYTABLE ct on ct.countrycode=dp2.countrycode emit changes;
++-----------------------------------------------------------+-----------------------------------------------------------+-----------------------------------------------------------+
+|DRIVER_NAME                                                |COUNTRYNAME                                                |RATING                                                     |
++-----------------------------------------------------------+-----------------------------------------------------------+-----------------------------------------------------------+
+|Mr. Speedy                                                 |Australia                                                  |2.4                                                        |
+```
+-------
+
+# Merging Streams
+
+
 
 
 
