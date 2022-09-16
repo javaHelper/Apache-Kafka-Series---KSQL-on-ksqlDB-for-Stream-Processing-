@@ -1614,7 +1614,9 @@ from requested_journey;
 ```
 
 ```
->from ridetodest emit changes;
+select user + ' is travelling ' + cast(round(dist) as varchar) +' km to ' + city_name + ' where the weather is reported as ' + weather_description 
+from ridetodest emit changes; 
+
 +---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 |KSQL_COL_0                                                                                                                                                                             |
 +---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -1629,6 +1631,10 @@ from requested_journey;
 ```
 -------
 
+# ksqlDB and KSQL Extensions - UDF & UDAF
+
+UDF - User Defined Functions.
+UDAF - User Defined Aggregate Functions.
 
 
 
