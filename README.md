@@ -7,6 +7,12 @@
 - https://simon-aubury.medium.com/machine-learning-kafka-ksql-stream-processing-bug-me-when-ive-left-the-heater-on-bd47540cd1e8
 - https://courses.datacumulus.com/downloads/kafka-ksql-na2/
 
+- You can start only ksql
+
+````
+confluent local services ksql-server start
+confluent local services status
+````
 
 ```sh
 user@Prateeks-MacBook-Pro ~ % ksql
@@ -114,6 +120,7 @@ rowtime: 2022/09/14 05:27:27.582 Z, key: <null>, value: Bob,GB, partition: 0
 Topic printing ceased
 ```
 
+- Get every 2nd record
 ```
 ksql> print 'USERS' from beginning interval 2 limit 2;
 Key format: ¯\_(ツ)_/¯ - no data processed
@@ -233,20 +240,21 @@ ksql> drop stream if exists users_stream delete topic;
 ---------------------------------------------------
  Source `USERS_STREAM` (topic: USERS) was dropped. 
 ---------------------------------------------------
-ksql> list topics;
 
- Kafka Topic                 | Partitions | Partition Replicas 
----------------------------------------------------------------
- default_ksql_processing_log | 1          | 1                  
----------------------------------------------------------------
-ksql>
+ksql> show streams;
+
+ Stream Name         | Kafka Topic                 | Key Format | Value Format | Windowed 
+------------------------------------------------------------------------------------------
+ KSQL_PROCESSING_LOG | default_ksql_processing_log | KAFKA      | JSON         | false    
+------------------------------------------------------------------------------------------
+
 ksql> show topics;
 
  Kafka Topic                 | Partitions | Partition Replicas 
 ---------------------------------------------------------------
+ USERS                       | 1          | 1                  
  default_ksql_processing_log | 1          | 1                  
 ---------------------------------------------------------------
-ksql>
 ```
 -----
 
@@ -283,7 +291,7 @@ Name                 : USERPROFILE
  RATING      | DOUBLE          
 -------------------------------
 For runtime statistics and query details run: DESCRIBE <Stream,Table> EXTENDED;
-ksql> 
+
 ksql> describe USERPROFILE extended;
 
 Name                 : USERPROFILE
@@ -392,8 +400,7 @@ ksql> select rowtime, firstname from userprofile emit changes;
 Review Scalar functions at https://docs.confluent.io/current/ksql/docs/developer-guide/syntax-reference.html#scalar-functions
 
 ```
-ksql> select  TIMESTAMPTOSTRING(rowtime, 'dd/MMM HH:mm') as createtime, firstname + ' ' + ucase(lastname)  as full_name
->from userprofile emit changes;
+ksql> select  TIMESTAMPTOSTRING(rowtime, 'dd/MMM HH:mm') as createtime, firstname + ' ' + ucase(lastname)  as full_name from userprofile emit changes;
 +-----------------------------------------------------------+-----------------------------------------------------------+
 |CREATETIME                                                 |FULL_NAME                                                  |
 +-----------------------------------------------------------+-----------------------------------------------------------+
@@ -538,6 +545,29 @@ Name                 : COUNTRYTABLE
 For runtime statistics and query details run: DESCRIBE <Stream,Table> EXTENDED;
 
 
+ksql> describe COUNTRYTABLE extended;
+
+Name                 : COUNTRYTABLE
+Type                 : TABLE
+Timestamp field      : Not set - using <ROWTIME>
+Key format           : KAFKA
+Value format         : DELIMITED
+Kafka topic          : COUNTRY-CSV (partitions: 1, replication: 1)
+Statement            : CREATE TABLE COUNTRYTABLE (COUNTRYCODE STRING PRIMARY KEY, COUNTRYNAME STRING) WITH (KAFKA_TOPIC='COUNTRY-CSV', KEY_FORMAT='KAFKA', VALUE_FORMAT='DELIMITED');
+
+ Field       | Type                           
+----------------------------------------------
+ COUNTRYCODE | VARCHAR(STRING)  (primary key) 
+ COUNTRYNAME | VARCHAR(STRING)                
+----------------------------------------------
+
+Local runtime statistics
+------------------------
+
+(Statistics of the local KSQL server interaction with the Kafka topic COUNTRY-CSV)
+ksql> 
+
+
 ksql> select countrycode, countryname from countrytable emit changes;
 +-----------------------------------------------------------+-----------------------------------------------------------+
 |COUNTRYCODE                                                |COUNTRYNAME                                                |
@@ -563,7 +593,6 @@ ksql> select countrycode, countryname from countrytable where countrycode='FR' e
 |COUNTRYCODE                                                |COUNTRYNAME                                                |
 +-----------------------------------------------------------+-----------------------------------------------------------+
 
-
 ```
 
 # Update a table
@@ -579,7 +608,6 @@ FR:France
 At KSQL prompt
 
 ```
-
 select countrycode, countryname from countrytable emit changes;
 +-----------------------------------------------------------+-----------------------------------------------------------+
 |COUNTRYCODE                                                |COUNTRYNAME                                                |
@@ -643,6 +671,11 @@ ksql> select firstname,lastname,countrycode,rating from userprofile emit changes
 ksql> select up.firstname, up.lastname, up.countrycode, ct.countryname 
 from USERPROFILE up 
 left join COUNTRYTABLE ct on ct.countrycode=up.countrycode emit changes;
+
+OR
+
+select up.*, ct.countryname from userprofile up left join countrytable ct on ct.countrycode = up.countrycode emit changes;
+
 +----------------------------+----------------------------+----------------------------+----------------------------+
 |FIRSTNAME                   |LASTNAME                    |UP_COUNTRYCODE              |COUNTRYNAME                 |
 +----------------------------+----------------------------+----------------------------+----------------------------+
@@ -799,7 +832,22 @@ ksql> select * from countryDrivers emit changes;
 ```
 INSERT INTO driverLocations (driverId, countrycode, city, driverName) VALUES ('5', 'AU', 'Sydney', 'Emma');
 
-select countrycode, numdrivers from countryDrivers where countrycode='AU';
+ksql> select countrycode, numdrivers from countryDrivers where countrycode='AU';
++-----------------------------------------------------------------------------------+-----------------------------------------------------------------------------------+
+|COUNTRYCODE                                                                        |NUMDRIVERS                                                                         |
++-----------------------------------------------------------------------------------+-----------------------------------------------------------------------------------+
+|AU                                                                                 |3                                                                                  |
+Query terminated
+ksql> 
+
+ksql> select countrycode, numdrivers from countryDrivers where countrycode='GB';
++-----------------------------------------------------------------------------------+-----------------------------------------------------------------------------------+
+|COUNTRYCODE                                                                        |NUMDRIVERS                                                                         |
++-----------------------------------------------------------------------------------+-----------------------------------------------------------------------------------+
+|GB                                                                                 |1                                                                                  |
+Query terminated
+ksql> 
+
 ```
 ------------
 
@@ -859,6 +907,7 @@ Adding installation directory to plugin path in the following files:
  
 Completed 
 
+-----
 
 confluent-hub install confluentinc/kafka-connect-jdbc:10.5.2
 The component can be installed in any of the following Confluent Platform installations: 
@@ -895,15 +944,15 @@ Completed
 
 ```
 ksql> CREATE SOURCE CONNECTOR `postgres-jdbc-source` WITH (
->   "connector.class"='io.confluent.connect.jdbc.JdbcSourceConnector',
->   "connection.url"='jdbc:postgresql://localhost:5432/postgres',
->   "mode"='incrementing',
->   "incrementing.column.name"='ref',
->   "table.whitelist"='carusers',
->   "connection.password"='postgres',
->   "connection.user"='postgres',
->   "topic.prefix"='db-',
->   "key"='username');
+    "connector.class"='io.confluent.connect.jdbc.JdbcSourceConnector',
+    "connection.url"='jdbc:postgresql://localhost:5432/postgres',
+    "mode"='incrementing',
+    "incrementing.column.name"='ref',
+    "table.whitelist"='carusers',
+    "connection.password"='postgres', 
+    "connection.user"='postgres',
+    "topic.prefix"='db-',
+    "key"='username');
 
  Message                                
 ----------------------------------------
@@ -920,13 +969,14 @@ ksql>
 ksql> print 'db-carusers' from beginning;
 Key format: KAFKA_STRING
 Value format: AVRO or KAFKA_STRING
-rowtime: 2022/09/14 17:02:35.159 Z, key: Alice, value: {"username": "Alice", "ref": 1}, partition: 0
-rowtime: 2022/09/14 17:02:35.164 Z, key: Bob, value: {"username": "Bob", "ref": 2}, partition: 0
-rowtime: 2022/09/14 17:02:35.1
+rowtime: 2022/11/12 14:17:15.782 Z, key: Alice, value: {"username": "Alice", "ref": 1}, partition: 0
+rowtime: 2022/11/12 14:17:15.787 Z, key: Bob, value: {"username": "Bob", "ref": 2}, partition: 0
+rowtime: 2022/11/12 14:17:15.788 Z, key: Charlie, value: {"username": "Charlie", "ref": 3}, partition: 0
 
 ```
 
-Now try to insert record in PostgresDB named as Derek and getting below 
+Now try to insert record in PostgresDB named as Derek and getting below
+INSERT INTO carusers (username) VALUES ('Derek');
 
 ```
 ksql> print 'db-carusers' from beginning;
@@ -946,8 +996,8 @@ kafka-topics --bootstrap-server localhost:9092 --create --partitions 1 --replica
 ```
 
 ```
-ksql> CREATE STREAM complaints_csv (customer_name VARCHAR, complaint_type VARCHAR, trip_cost DOUBLE, new_customer BOOLEAN) \
->  WITH (VALUE_FORMAT = 'DELIMITED', KAFKA_TOPIC = 'COMPLAINTS_CSV');
+ksql> CREATE STREAM complaints_csv (customer_name VARCHAR, complaint_type VARCHAR, trip_cost DOUBLE, new_customer BOOLEAN) \ 
+WITH (VALUE_FORMAT = 'DELIMITED', KAFKA_TOPIC = 'COMPLAINTS_CSV');
 
  Message        
 ----------------
@@ -988,7 +1038,7 @@ Created topic COMPLAINTS_JSON.
 
 ```
 ksql> CREATE STREAM complaints_json (customer_name VARCHAR, complaint_type VARCHAR, trip_cost DOUBLE, new_customer BOOLEAN) \
->  WITH (VALUE_FORMAT = 'JSON', KAFKA_TOPIC = 'COMPLAINTS_JSON');
+WITH (VALUE_FORMAT = 'JSON', KAFKA_TOPIC = 'COMPLAINTS_JSON');
 
  Message        
 ----------------
@@ -1030,13 +1080,13 @@ Now look at the KSQL Server log. We can see bad data is noticed; but hidden in a
  # Avro Data
  
  ```sh
- ksql-course-master % kafka-topics --bootstrap-server localhost:9092 --create --partitions 1 --replication-factor 1 --topic COMPLAINTS_AVRO
+kafka-topics --bootstrap-server localhost:9092 --create --partitions 1 --replication-factor 1 --topic COMPLAINTS_AVRO
 WARNING: Due to limitations in metric names, topics with a period ('.') or underscore ('_') could collide. To avoid issues it is best to use either, but not both.
 Created topic COMPLAINTS_AVRO.
  ```
  
  ```
- ksql-course-master % kafka-avro-console-producer  --bootstrap-server localhost:9092 --topic COMPLAINTS_AVRO \
+kafka-avro-console-producer  --bootstrap-server localhost:9092 --topic COMPLAINTS_AVRO \
 --property value.schema='
 {
   "type": "record",
@@ -1078,7 +1128,7 @@ ksql> select * from complaints_avro emit changes;
 # experience with bad data
 
 ```
-ksql-course-master % kafka-avro-console-producer  --bootstrap-server localhost:9092 --topic COMPLAINTS_AVRO \
+kafka-avro-console-producer  --bootstrap-server localhost:9092 --topic COMPLAINTS_AVRO \
 --property value.schema='
 {
   "type": "record",
@@ -1195,15 +1245,21 @@ ksql> list streams;
  COMPLAINTS_AVRO_V2  | COMPLAINTS_AVRO             | KAFKA      | AVRO         | false    
  COMPLAINTS_CSV      | COMPLAINTS_CSV              | KAFKA      | DELIMITED    | false    
  COMPLAINTS_JSON     | COMPLAINTS_JSON             | KAFKA      | JSON         | false    
+ DRIVERLOCATIONS     | driverlocations             | KAFKA      | JSON         | false    
  KSQL_PROCESSING_LOG | default_ksql_processing_log | KAFKA      | JSON         | false    
+ UP_JOINED           | UP_JOINED                   | KAFKA      | JSON         | false    
+ USERPROFILE         | USERPROFILE                 | KAFKA      | JSON         | false    
 ------------------------------------------------------------------------------------------
+
 ksql> 
 
 ksql> select * from complaints_avro_v2 emit changes;
-+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
-|CUSTOMER_NAME          |COMPLAINT_TYPE         |TRIP_COST              |NEW_CUSTOMER           |NUMBER_OF_RIDES        |
-+-----------------------+-----------------------+-----------------------+-----------------------+-----------------------+
-^CQuery terminated
++--------------------------------+--------------------------------+--------------------------------+--------------------------------+--------------------------------+
+|CUSTOMER_NAME                   |COMPLAINT_TYPE                  |TRIP_COST                       |NEW_CUSTOMER                    |NUMBER_OF_RIDES                 |
++--------------------------------+--------------------------------+--------------------------------+--------------------------------+--------------------------------+
+|Carol                           |Late arrival                    |19.600000381469727              |false                           |null                            |
+|Ed                              |Dirty car                       |29.100000381469727              |false                           |22                              |
+
 ksql> 
 ```
 
@@ -1228,7 +1284,7 @@ ksql> CREATE STREAM weather
        humidity BIGINT, 
        pressure DOUBLE, 
        rain DOUBLE) 
->WITH (KAFKA_TOPIC='WEATHERNESTED', VALUE_FORMAT='JSON');
+ WITH (KAFKA_TOPIC='WEATHERNESTED', VALUE_FORMAT='JSON');
 
  Message        
 ----------------
@@ -1429,8 +1485,8 @@ kafka-console-producer --bootstrap-server localhost:9092 --topic DRIVER_PROFILE
 ```
 
 ```
-ksql> CREATE STREAM DRIVER_PROFILE (driver_name VARCHAR, countrycode VARCHAR, rating DOUBLE) 
->  WITH (VALUE_FORMAT = 'JSON', KAFKA_TOPIC = 'DRIVER_PROFILE');
+ksql> CREATE STREAM DRIVER_PROFILE (driver_name VARCHAR, countrycode VARCHAR, rating DOUBLE) \ 
+WITH (VALUE_FORMAT = 'JSON', KAFKA_TOPIC = 'DRIVER_PROFILE');
 
  Message        
 ----------------
@@ -1457,9 +1513,9 @@ ksql> create stream driverprofile_rekeyed with (partitions=1) as select * from D
 ksql>
 
 
-ksql> select dp2.driver_name, ct.countryname, dp2.rating 
->from DRIVERPROFILE_REKEYED dp2 
->left join COUNTRYTABLE ct on ct.countrycode=dp2.countrycode emit changes;
+ksql> select dp2.driver_name, ct.countryname, dp2.rating \ 
+from DRIVERPROFILE_REKEYED dp2 \
+left join COUNTRYTABLE ct on ct.countrycode=dp2.countrycode emit changes;
 +-----------------------------------------------------------+-----------------------------------------------------------+-----------------------------------------------------------+
 |DRIVER_NAME                                                |COUNTRYNAME                                                |RATING                                                     |
 +-----------------------------------------------------------+-----------------------------------------------------------+-----------------------------------------------------------+
@@ -1635,17 +1691,3 @@ from ridetodest emit changes;
 
 UDF - User Defined Functions.
 UDAF - User Defined Aggregate Functions.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
